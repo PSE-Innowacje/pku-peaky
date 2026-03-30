@@ -1,0 +1,54 @@
+## .NET / Blazor .gitignore
+
+# Build results
+bin/
+obj/
+out/
+
+# NuGet
+*.nupkg
+*.snupkg
+.nuget/
+packages/
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.userprefs
+
+# Visual Studio
+.vs/
+*.rsuser
+*.vscode/
+
+# Test results
+TestResults/
+*.trx
+*.coverage
+*.coveragexml
+
+# Publish output
+publish/
+**/Properties/PublishProfiles/
+
+# ASP.NET / Blazor WASM
+wwwroot/_framework/
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment / secrets
+*.env
+appsettings.*.json
+!appsettings.json
+!appsettings.Development.json
