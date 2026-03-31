@@ -1,0 +1,43 @@
+@page "/rozliczenia/terminarz"
+@using PKU.Application.Interfaces
+@inject IScheduleService ScheduleService
+@rendermode InteractiveServer
+
+<PageTitle>Terminarz rozliczen</PageTitle>
+
+<h3>Terminarz rozliczen</h3>
+<p>Przeglad aktualnych terminow rozliczen.</p>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Nazwa</th>
+            <th>Data rozpoczecia</th>
+            <th>Data zakonczenia</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (_schedules is not null)
+        {
+            @foreach (var schedule in _schedules)
+            {
+                <tr>
+                    <td>@schedule.Name</td>
+                    <td>@schedule.StartDate.ToString("yyyy-MM-dd")</td>
+                    <td>@schedule.EndDate.ToString("yyyy-MM-dd")</td>
+                    <td>@(schedule.IsActive ? "Aktywny" : "Nieaktywny")</td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>
+
+@code {
+    private IEnumerable<PKU.Domain.Entities.Schedule>? _schedules;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _schedules = await ScheduleService.GetAllAsync();
+    }
+}

@@ -1,0 +1,45 @@
+@page "/admin/wzorce-oswiadczen"
+@using PKU.Application.Interfaces
+@inject IDeclarationTemplateService TemplateService
+@rendermode InteractiveServer
+
+<PageTitle>Wzorce oswiadczen</PageTitle>
+
+<h3>Wzorce oswiadczen</h3>
+<p>Definiowanie i zarzadzanie wzorcami oswiadczen.</p>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Nazwa</th>
+            <th>Opis</th>
+            <th>Aktywny</th>
+            <th>Akcje</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (_templates is not null)
+        {
+            @foreach (var template in _templates)
+            {
+                <tr>
+                    <td>@template.Name</td>
+                    <td>@template.Description</td>
+                    <td>@(template.IsActive ? "Tak" : "Nie")</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary">Edytuj</button>
+                    </td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>
+
+@code {
+    private IEnumerable<PKU.Domain.Entities.DeclarationTemplate>? _templates;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _templates = await TemplateService.GetAllAsync();
+    }
+}
