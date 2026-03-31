@@ -2,6 +2,7 @@
 @attribute [Authorize(Roles = "Administrator")]
 @using PKU.Application.Interfaces
 @inject IUserService UserService
+@inject NavigationManager Navigation
 @rendermode InteractiveServer
 
 <PageTitle>Uzytkownicy</PageTitle>
@@ -15,6 +16,7 @@
             <th>Imie i nazwisko</th>
             <th>Email</th>
             <th>Rola</th>
+            <th>Typ kontrahenta</th>
             <th>Aktywny</th>
             <th>Akcje</th>
         </tr>
@@ -25,12 +27,13 @@
             @foreach (var user in _users)
             {
                 <tr>
-                    <td>@user.Name</td>
+                    <td>@user.FullName</td>
                     <td>@user.Email</td>
                     <td>@user.Role</td>
+                    <td>@string.Join(", ", user.ContractorTypes)</td>
                     <td>@(user.IsActive ? "Tak" : "Nie")</td>
                     <td>
-                        <button class="btn btn-sm btn-outline-primary">Edytuj</button>
+                        <button class="btn btn-sm btn-outline-primary" @onclick="@(() => Navigation.NavigateTo($"/admin/uzytkownicy/{user.Id}"))">Edytuj</button>
                     </td>
                 </tr>
             }

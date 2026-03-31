@@ -1,0 +1,300 @@
+@page "/admin/uzytkownicy/{UserId}"
+@attribute [Authorize(Roles = "Administrator")]
+@using PKU.Application.Interfaces
+@using PKU.Domain.Enums
+@inject IUserService UserService
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+
+<PageTitle>Edytuj uzytkownika</PageTitle>
+
+<h3>Edytuj uzytkownika</h3>
+
+@if (_user is null)
+{
+    <p>Ladowanie...</p>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-8">
+            @if (!string.IsNullOrEmpty(_errorMessage))
+            {
+                <div class="alert alert-danger">@_errorMessage</div>
+            }
+            @if (_successMessage)
+            {
+                <div class="alert alert-success">Dane uzytkownika zostaly zapisane.</div>
+            }
+
+            <EditForm Model="_user" OnValidSubmit="HandleSubmit" FormName="editUser">
+                <h5 class="mt-3 mb-3">Dane podstawowe</h5>
+
+                <div class="mb-3">
+                    <label class="form-label">Imie</label>
+                    <InputText @bind-Value="_user.FirstName" class="form-control" maxlength="100" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Nazwisko</label>
+                    <InputText @bind-Value="_user.LastName" class="form-control" maxlength="100" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Email / login *</label>
+                    <InputText @bind-Value="_user.Email" class="form-control" type="email" maxlength="100" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Rola *</label>
+                    <InputSelect @bind-Value="_user.Role" class="form-select" @bind-Value:after="OnRoleChanged">
+                        @foreach (var role in Enum.GetValues<UserRole>())
+                        {
+                            <option value="@role">@role</option>
+                        }
+                    </InputSelect>
+                </div>
+
+                <div class="mb-3 form-check">
+                    <InputCheckbox @bind-Value="_user.IsActive" class="form-check-input" id="isActive" />
+                    <label class="form-check-label" for="isActive">Aktywny</label>
+                </div>
+
+                @if (_user.Role == UserRole.Kontrahent)
+                {
+                    <h5 class="mt-4 mb-3">Dane kontrahenta</h5>
+
+                    <div class="mb-3">
+                        <label class="form-label">Skrot kontrahenta *</label>
+                        <InputText @bind-Value="_user.ContractorAbbreviation" class="form-control" maxlength="16" />
+                        <div class="form-text">Od 3 do 16 znakow</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Nazwa pelna kontrahenta *</label>
+                        <InputText @bind-Value="_user.ContractorFullName" class="form-control" maxlength="100" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Nazwa skrocona kontrahenta *</label>
+                        <InputText @bind-Value="_user.ContractorShortName" class="form-control" maxlength="100" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">KRS *</label>
+                        <InputText @bind-Value="_user.KRS" class="form-control" maxlength="100" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">NIP *</label>
+                        <InputText @bind-Value="_user.NIP" class="form-control" maxlength="100" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Adres siedziby *</label>
+                        <InputText @bind-Value="_user.HeadquartersAddress" class="form-control" maxlength="100" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Kod kontrahenta *</label>
+                        <InputText @bind-Value="_user.ContractorCode" class="form-control" maxlength="100" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Typ kontrahenta *</label>
+                        @foreach (var type in _contractorTypes)
+                        {
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input"
+                                       id="ct_@type"
+                                       checked="@(_user.ContractorTypes.Contains(type))"
+                                       @onchange="@(e => ToggleContractorType(type, (bool)e.Value!))" />
+                                <label class="form-check-label" for="ct_@type">@GetContractorTypeLabel(type)</label>
+                            </div>
+                        }
+                    </div>
+
+                    <h5 class="mt-4 mb-3">Umowa przesylania</h5>
+
+                    <div class="mb-3">
+                        <label class="form-label">Numer umowy kontrahenta *</label>
+                        <InputText @bind-Value="_user.ContractNumber" class="form-control" maxlength="100" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Data obowiazywania umowy od *</label>
+                        <InputDate @bind-Value="_user.ContractStartDate" class="form-control" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Data obowiazywania umowy do *</label>
+                        <InputDate @bind-Value="_user.ContractEndDate" class="form-control" />
+                    </div>
+                }
+
+                <div class="mt-4 mb-3">
+                    <button type="submit" class="btn btn-primary me-2">Zapisz</button>
+                    <button type="button" class="btn btn-outline-secondary" @onclick="GoBack">Anuluj</button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public string UserId { get; set; } = string.Empty;
+
+    private PKU.Domain.Entities.User? _user;
+    private string? _errorMessage;
+    private bool _successMessage;
+
+    private static readonly ContractorType[] _contractorTypes =
+    [
+        ContractorType.OSDp,
+        ContractorType.OSDn,
+        ContractorType.Wytworca,
+        ContractorType.Magazyn,
+        ContractorType.OdbiorcaKoncowy
+    ];
+
+    protected override async Task OnInitializedAsync()
+    {
+        var original = await UserService.GetByIdAsync(UserId);
+        if (original is null)
+        {
+            _errorMessage = "Nie znaleziono uzytkownika.";
+            return;
+        }
+
+        // Create a working copy to avoid modifying the original before save
+        _user = new PKU.Domain.Entities.User
+        {
+            Id = original.Id,
+            FirstName = original.FirstName,
+            LastName = original.LastName,
+            Email = original.Email,
+            PasswordHash = original.PasswordHash,
+            Role = original.Role,
+            IsActive = original.IsActive,
+            CreatedAt = original.CreatedAt,
+            ContractorAbbreviation = original.ContractorAbbreviation,
+            ContractorFullName = original.ContractorFullName,
+            ContractorShortName = original.ContractorShortName,
+            KRS = original.KRS,
+            NIP = original.NIP,
+            HeadquartersAddress = original.HeadquartersAddress,
+            ContractorCode = original.ContractorCode,
+            ContractorTypes = new List<ContractorType>(original.ContractorTypes),
+            ContractNumber = original.ContractNumber,
+            ContractStartDate = original.ContractStartDate,
+            ContractEndDate = original.ContractEndDate
+        };
+    }
+
+    private async Task HandleSubmit()
+    {
+        _errorMessage = null;
+        _successMessage = false;
+
+        if (string.IsNullOrWhiteSpace(_user!.Email))
+        {
+            _errorMessage = "Email jest wymagany.";
+            return;
+        }
+
+        if (_user.Role == UserRole.Administrator)
+        {
+            if (string.IsNullOrWhiteSpace(_user.FirstName) || string.IsNullOrWhiteSpace(_user.LastName))
+            {
+                _errorMessage = "Imie i nazwisko sa wymagane dla roli Administrator.";
+                return;
+            }
+        }
+
+        if (_user.Role == UserRole.Kontrahent)
+        {
+            if (string.IsNullOrWhiteSpace(_user.ContractorAbbreviation) || _user.ContractorAbbreviation.Length < 3)
+            {
+                _errorMessage = "Skrot kontrahenta jest wymagany (min. 3 znaki).";
+                return;
+            }
+            if (string.IsNullOrWhiteSpace(_user.ContractorFullName))
+            {
+                _errorMessage = "Nazwa pelna kontrahenta jest wymagana.";
+                return;
+            }
+            if (string.IsNullOrWhiteSpace(_user.ContractorShortName))
+            {
+                _errorMessage = "Nazwa skrocona kontrahenta jest wymagana.";
+                return;
+            }
+            if (string.IsNullOrWhiteSpace(_user.KRS))
+            {
+                _errorMessage = "KRS jest wymagany.";
+                return;
+            }
+            if (string.IsNullOrWhiteSpace(_user.NIP))
+            {
+                _errorMessage = "NIP jest wymagany.";
+                return;
+            }
+            if (string.IsNullOrWhiteSpace(_user.HeadquartersAddress))
+            {
+                _errorMessage = "Adres siedziby jest wymagany.";
+                return;
+            }
+            if (string.IsNullOrWhiteSpace(_user.ContractorCode))
+            {
+                _errorMessage = "Kod kontrahenta jest wymagany.";
+                return;
+            }
+            if (_user.ContractorTypes.Count == 0)
+            {
+                _errorMessage = "Typ kontrahenta jest wymagany.";
+                return;
+            }
+            if (string.IsNullOrWhiteSpace(_user.ContractNumber))
+            {
+                _errorMessage = "Numer umowy jest wymagany.";
+                return;
+            }
+            if (_user.ContractStartDate is null || _user.ContractEndDate is null)
+            {
+                _errorMessage = "Daty obowiazywania umowy sa wymagane.";
+                return;
+            }
+        }
+
+        await UserService.UpdateAsync(_user);
+        Navigation.NavigateTo("/admin/uzytkownicy");
+    }
+
+    private void ToggleContractorType(ContractorType type, bool isChecked)
+    {
+        if (isChecked && !_user!.ContractorTypes.Contains(type))
+            _user!.ContractorTypes.Add(type);
+        else if (!isChecked)
+            _user!.ContractorTypes.Remove(type);
+    }
+
+    private void OnRoleChanged()
+    {
+        StateHasChanged();
+    }
+
+    private void GoBack()
+    {
+        Navigation.NavigateTo("/admin/uzytkownicy");
+    }
+
+    private static string GetContractorTypeLabel(ContractorType type) => type switch
+    {
+        ContractorType.OSDp => "OSDp",
+        ContractorType.OSDn => "OSDn",
+        ContractorType.Wytworca => "Wytworca",
+        ContractorType.Magazyn => "Magazyn",
+        ContractorType.OdbiorcaKoncowy => "Odbiorca Koncowy",
+        _ => type.ToString()
+    };
+}
