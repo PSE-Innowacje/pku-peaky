@@ -52,3 +52,5 @@ Thumbs.db
 appsettings.*.json
 !appsettings.json
 !appsettings.Development.json
+todo/
+.claude/settings.local.json
