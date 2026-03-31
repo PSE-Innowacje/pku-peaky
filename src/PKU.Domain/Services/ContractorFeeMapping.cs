@@ -17,13 +17,13 @@ public static class ContractorFeeMapping
         [ContractorType.OSDn] = [FeeType.OP, FeeType.OZE, FeeType.OKO, FeeType.OM, FeeType.OR],
 
         // OK (Odbiorca Koncowy): OZE, OKO, OM, OJ, OR
-        [ContractorType.OK] = [FeeType.OZE, FeeType.OKO, FeeType.OM, FeeType.OJ, FeeType.OR],
+        [ContractorType.OdbiorcaKoncowy] = [FeeType.OZE, FeeType.OKO, FeeType.OM, FeeType.OJ, FeeType.OR],
 
         // Wyt (Wytworca): OZE, OKO, OM, OJ, OR
-        [ContractorType.Wyt] = [FeeType.OZE, FeeType.OKO, FeeType.OM, FeeType.OJ, FeeType.OR],
+        [ContractorType.Wytworca] = [FeeType.OZE, FeeType.OKO, FeeType.OM, FeeType.OJ, FeeType.OR],
 
         // Mag (Magazyn): OZE, OKO, OM, OJ, OR
-        [ContractorType.Mag] = [FeeType.OZE, FeeType.OKO, FeeType.OM, FeeType.OJ, FeeType.OR],
+        [ContractorType.Magazyn] = [FeeType.OZE, FeeType.OKO, FeeType.OM, FeeType.OJ, FeeType.OR],
     };
 
     /// <summary>

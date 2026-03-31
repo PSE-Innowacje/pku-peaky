@@ -94,7 +94,7 @@ public static class DeclarationSeedData
             {
                 Id = "seed-wyt-om-curr",
                 UserId = "5",
-                ContractorType = ContractorType.Wyt,
+                ContractorType = ContractorType.Wytworca,
                 FeeType = FeeType.OM,
                 FeeCategory = FeeCategory.Pozaprzesylowa,
                 BillingYear = currentYear,

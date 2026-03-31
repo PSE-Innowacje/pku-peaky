@@ -45,7 +45,10 @@ public class InMemoryDeclarationService : IDeclarationService
         if (user is null || user.Role != UserRole.Kontrahent)
             return [];
 
-        var feeTypes = ContractorFeeMapping.GetFeeTypesForContractor(user.ContractorType);
+        var feeTypes = user.ContractorTypes
+            .SelectMany(ContractorFeeMapping.GetFeeTypesForContractor)
+            .Distinct()
+            .ToArray();
 
         var existing = _declarations
             .Where(d => d.UserId == userId && d.BillingYear == year && d.BillingMonth == month)
@@ -62,7 +65,8 @@ public class InMemoryDeclarationService : IDeclarationService
                 declaration = new Declaration
                 {
                     UserId = userId,
-                    ContractorType = user.ContractorType,
+                    ContractorType = user.ContractorTypes.First(ct =>
+                        ContractorFeeMapping.GetFeeTypesForContractor(ct).Contains(feeType)),
                     FeeType = feeType,
                     FeeCategory = feeCategory,
                     BillingYear = year,
