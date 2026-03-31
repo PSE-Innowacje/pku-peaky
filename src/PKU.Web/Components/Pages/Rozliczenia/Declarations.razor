@@ -20,10 +20,10 @@
         <div class="card-body">
             <div class="row">
                 <div class="col-md-6">
-                    <strong>Kontrahent:</strong> @_user.Name
+                    <strong>Kontrahent:</strong> @_user.FullName
                 </div>
                 <div class="col-md-6">
-                    <strong>Typ:</strong> @_user.ContractorType
+                    <strong>Typ:</strong> @string.Join(", ", _user.ContractorTypes)
                 </div>
             </div>
         </div>

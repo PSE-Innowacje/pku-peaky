@@ -16,7 +16,7 @@
 @if (_user is not null && _user.Role == UserRole.Kontrahent)
 {
     <p class="text-muted mb-3">
-        Kontrahent: <strong>@_user.Name</strong> | Typ: <strong>@_user.ContractorType</strong>
+        Kontrahent: <strong>@_user.FullName</strong> | Typ: <strong>@string.Join(", ", _user.ContractorTypes)</strong>
     </p>
 }
 
