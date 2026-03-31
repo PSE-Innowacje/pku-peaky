@@ -1,11 +1,38 @@
 using PKU.Application.Interfaces;
 using PKU.Domain.Entities;
+using PKU.Domain.Enums;
 
 namespace PKU.Infrastructure.Services;
 
 public class InMemoryScheduleService : IScheduleService
 {
-    private readonly List<Schedule> _schedules = [];
+    private readonly List<Schedule> _schedules =
+    [
+        new Schedule
+        {
+            FeeType = FeeType.OP,
+            ContractorType = ContractorType.OSDp,
+            Items =
+            [
+                new ScheduleItem { ItemType = ScheduleItemType.DeclarationSubmit, Days = 10, DayType = DayType.BusinessDay },
+                new ScheduleItem { ItemType = ScheduleItemType.DeclarationInvoice, Days = 15, DayType = DayType.CalendarDay },
+                new ScheduleItem { ItemType = ScheduleItemType.DeclarationCorrection, Days = 20, DayType = DayType.BusinessDay },
+                new ScheduleItem { ItemType = ScheduleItemType.DeclarationCorrectionInvoice, Days = 25, DayType = DayType.CalendarDay }
+            ]
+        },
+        new Schedule
+        {
+            FeeType = FeeType.OZE,
+            ContractorType = ContractorType.Wytworca,
+            Items =
+            [
+                new ScheduleItem { ItemType = ScheduleItemType.DeclarationSubmit, Days = 7, DayType = DayType.CalendarDay },
+                new ScheduleItem { ItemType = ScheduleItemType.DeclarationInvoice, Days = 12, DayType = DayType.CalendarDay },
+                new ScheduleItem { ItemType = ScheduleItemType.DeclarationCorrection, Days = 17, DayType = DayType.BusinessDay },
+                new ScheduleItem { ItemType = ScheduleItemType.DeclarationCorrectionInvoice, Days = 22, DayType = DayType.CalendarDay }
+            ]
+        }
+    ];
 
     public Task<IEnumerable<Schedule>> GetAllAsync() =>
         Task.FromResult<IEnumerable<Schedule>>(_schedules);
