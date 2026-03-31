@@ -1,69 +1,81 @@
-<div class="top-row ps-3 navbar navbar-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="">PKU - Platforma Oswiadczen</a>
-    </div>
-</div>
-
-<input type="checkbox" title="Navigation menu" class="navbar-toggler" />
-
-<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
-    <nav class="nav flex-column">
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Strona glowna
-            </NavLink>
+<AuthorizeView>
+    <Authorized>
+        <div class="top-row ps-3 navbar navbar-dark">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="">PKU - Platforma Oswiadczen</a>
+            </div>
         </div>
 
-        <div class="nav-section px-3">
-            <span class="nav-section-title">Administracja</span>
-        </div>
+        <input type="checkbox" title="Navigation menu" class="navbar-toggler" />
 
-        <div class="nav-item px-3 nav-sub-item">
-            <NavLink class="nav-link" href="admin/uzytkownicy">
-                <span class="bi bi-people-nav-menu" aria-hidden="true"></span> Uzytkownicy
-            </NavLink>
-        </div>
+        <div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
+            <nav class="nav flex-column">
 
-        <div class="nav-item px-3 nav-sub-item">
-            <NavLink class="nav-link" href="admin/wzorce-oswiadczen">
-                <span class="bi bi-file-text-nav-menu" aria-hidden="true"></span> Wzorce oswiadczen
-            </NavLink>
-        </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                        <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Strona glowna
+                    </NavLink>
+                </div>
 
-        <div class="nav-item px-3 nav-sub-item">
-            <NavLink class="nav-link" href="admin/terminarze">
-                <span class="bi bi-calendar-nav-menu" aria-hidden="true"></span> Definiowanie terminarzy
-            </NavLink>
-        </div>
+                <AuthorizeView Roles="Administrator">
+                    <Authorized Context="adminCtx">
+                        <div class="nav-section px-3">
+                            <span class="nav-section-title">Administracja</span>
+                        </div>
 
-        <div class="nav-item px-3 nav-sub-item">
-            <NavLink class="nav-link" href="admin/uprawnienia">
-                <span class="bi bi-shield-nav-menu" aria-hidden="true"></span> Uprawnienia
-            </NavLink>
-        </div>
+                        <div class="nav-item px-3 nav-sub-item">
+                            <NavLink class="nav-link" href="admin/uzytkownicy">
+                                <span class="bi bi-people-nav-menu" aria-hidden="true"></span> Uzytkownicy
+                            </NavLink>
+                        </div>
 
-        <div class="nav-section px-3">
-            <span class="nav-section-title">PKU Rozliczenia</span>
-        </div>
+                        <div class="nav-item px-3 nav-sub-item">
+                            <NavLink class="nav-link" href="admin/wzorce-oswiadczen">
+                                <span class="bi bi-file-text-nav-menu" aria-hidden="true"></span> Wzorce oswiadczen
+                            </NavLink>
+                        </div>
 
-        <div class="nav-item px-3 nav-sub-item">
-            <NavLink class="nav-link" href="rozliczenia/dashboard">
-                <span class="bi bi-grid-nav-menu" aria-hidden="true"></span> Dashboard oswiadczen
-            </NavLink>
-        </div>
+                        <div class="nav-item px-3 nav-sub-item">
+                            <NavLink class="nav-link" href="admin/terminarze">
+                                <span class="bi bi-calendar-nav-menu" aria-hidden="true"></span> Definiowanie terminarzy
+                            </NavLink>
+                        </div>
 
-        <div class="nav-item px-3 nav-sub-item">
-            <NavLink class="nav-link" href="rozliczenia/terminarz">
-                <span class="bi bi-calendar-check-nav-menu" aria-hidden="true"></span> Terminarz rozliczen
-            </NavLink>
-        </div>
+                        <div class="nav-item px-3 nav-sub-item">
+                            <NavLink class="nav-link" href="admin/uprawnienia">
+                                <span class="bi bi-shield-nav-menu" aria-hidden="true"></span> Uprawnienia
+                            </NavLink>
+                        </div>
+                    </Authorized>
+                </AuthorizeView>
 
-        <div class="nav-item px-3 nav-sub-item">
-            <NavLink class="nav-link" href="rozliczenia/oswiadczenia">
-                <span class="bi bi-journal-nav-menu" aria-hidden="true"></span> Oswiadczenia rozliczeniowe
-            </NavLink>
-        </div>
+                <AuthorizeView Roles="Kontrahent,Administrator">
+                    <Authorized Context="rozliczeniaCtx">
+                        <div class="nav-section px-3">
+                            <span class="nav-section-title">PKU Rozliczenia</span>
+                        </div>
 
-    </nav>
-</div>
+                        <div class="nav-item px-3 nav-sub-item">
+                            <NavLink class="nav-link" href="rozliczenia/dashboard">
+                                <span class="bi bi-grid-nav-menu" aria-hidden="true"></span> Dashboard oswiadczen
+                            </NavLink>
+                        </div>
+
+                        <div class="nav-item px-3 nav-sub-item">
+                            <NavLink class="nav-link" href="rozliczenia/terminarz">
+                                <span class="bi bi-calendar-check-nav-menu" aria-hidden="true"></span> Terminarz rozliczen
+                            </NavLink>
+                        </div>
+
+                        <div class="nav-item px-3 nav-sub-item">
+                            <NavLink class="nav-link" href="rozliczenia/oswiadczenia">
+                                <span class="bi bi-journal-nav-menu" aria-hidden="true"></span> Oswiadczenia rozliczeniowe
+                            </NavLink>
+                        </div>
+                    </Authorized>
+                </AuthorizeView>
+
+            </nav>
+        </div>
+    </Authorized>
+</AuthorizeView>

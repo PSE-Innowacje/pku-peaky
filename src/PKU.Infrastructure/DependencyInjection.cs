@@ -12,6 +12,7 @@ public static class DependencyInjection
         services.AddSingleton<IDeclarationTemplateService, InMemoryDeclarationTemplateService>();
         services.AddSingleton<IScheduleService, InMemoryScheduleService>();
         services.AddSingleton<IDeclarationService, InMemoryDeclarationService>();
+        services.AddScoped<IAuthService, AuthService>();
         return services;
     }
 }
