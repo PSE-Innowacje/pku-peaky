@@ -9,4 +9,10 @@ public interface IDeclarationService
     Task<IEnumerable<Declaration>> GetPendingAsync();
     Task CreateAsync(Declaration declaration);
     Task UpdateStatusAsync(string id, DeclarationStatus status);
+
+    /// <summary>
+    /// Returns declarations for a contractor for a given month/year.
+    /// If declarations don't exist yet, creates them with NotSubmitted status.
+    /// </summary>
+    Task<IEnumerable<Declaration>> GetForContractorMonthAsync(string userId, int year, int month);
 }

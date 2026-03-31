@@ -1,15 +1,31 @@
 @page "/rozliczenia/dashboard"
 @attribute [Authorize(Roles = "Kontrahent,Administrator")]
+@using System.Security.Claims
 @using PKU.Application.Interfaces
+@using PKU.Domain.Entities
+@using PKU.Domain.Enums
 @inject IDeclarationService DeclarationService
+@inject IUserService UserService
+@inject AuthenticationStateProvider AuthStateProvider
 @rendermode InteractiveServer
 
 <PageTitle>Dashboard oswiadczen</PageTitle>
 
 <h3>Dashboard oswiadczen do obsluzenia</h3>
 
+@if (_user is not null && _user.Role == UserRole.Kontrahent)
+{
+    <p class="text-muted mb-3">
+        Kontrahent: <strong>@_user.Name</strong> | Typ: <strong>@_user.ContractorType</strong>
+    </p>
+}
+
+<p class="text-muted">
+    Okres: <strong>@GetMonthName(DateTime.Now.Month) @DateTime.Now.Year</strong>
+</p>
+
 <div class="row mb-4">
-    <div class="col-md-3">
+    <div class="col-md-4">
         <div class="card text-white bg-primary">
             <div class="card-body">
                 <h5 class="card-title">Wszystkie</h5>
@@ -17,45 +33,63 @@
             </div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card text-white bg-warning">
+    <div class="col-md-4">
+        <div class="card text-white bg-secondary">
             <div class="card-body">
-                <h5 class="card-title">Oczekujace</h5>
-                <p class="card-text display-6">@_pendingCount</p>
+                <h5 class="card-title">Nie zlozone</h5>
+                <p class="card-text display-6">@_nieZlozoneCount</p>
             </div>
         </div>
     </div>
-    <div class="col-md-3">
+    <div class="col-md-4">
         <div class="card text-white bg-success">
             <div class="card-body">
-                <h5 class="card-title">Zatwierdzone</h5>
-                <p class="card-text display-6">@_approvedCount</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card text-white bg-danger">
-            <div class="card-body">
-                <h5 class="card-title">Odrzucone</h5>
-                <p class="card-text display-6">@_rejectedCount</p>
+                <h5 class="card-title">Zlozone</h5>
+                <p class="card-text display-6">@_zlozoneCount</p>
             </div>
         </div>
     </div>
 </div>
 
 @code {
+    private User? _user;
     private int _totalCount;
-    private int _pendingCount;
-    private int _approvedCount;
-    private int _rejectedCount;
+    private int _nieZlozoneCount;
+    private int _zlozoneCount;
 
     protected override async Task OnInitializedAsync()
     {
-        var all = await DeclarationService.GetAllAsync();
-        var list = all.ToList();
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var userId = authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (userId is null) return;
+
+        _user = await UserService.GetByIdAsync(userId);
+        if (_user is null) return;
+
+        var now = DateTime.Now;
+        IEnumerable<Declaration> declarations;
+
+        if (_user.Role == UserRole.Kontrahent)
+        {
+            declarations = await DeclarationService.GetForContractorMonthAsync(_user.Id, now.Year, now.Month);
+        }
+        else
+        {
+            declarations = await DeclarationService.GetAllAsync();
+        }
+
+        var list = declarations.ToList();
         _totalCount = list.Count;
-        _pendingCount = list.Count(d => d.Status == PKU.Domain.Entities.DeclarationStatus.Submitted);
-        _approvedCount = list.Count(d => d.Status == PKU.Domain.Entities.DeclarationStatus.Approved);
-        _rejectedCount = list.Count(d => d.Status == PKU.Domain.Entities.DeclarationStatus.Rejected);
+        _nieZlozoneCount = list.Count(d => d.Status == DeclarationStatus.NotSubmitted);
+        _zlozoneCount = list.Count(d => d.Status == DeclarationStatus.Submitted);
     }
+
+    private static string GetMonthName(int month) => month switch
+    {
+        1 => "Styczen", 2 => "Luty", 3 => "Marzec", 4 => "Kwiecien",
+        5 => "Maj", 6 => "Czerwiec", 7 => "Lipiec", 8 => "Sierpien",
+        9 => "Wrzesien", 10 => "Pazdziernik", 11 => "Listopad", 12 => "Grudzien",
+        _ => month.ToString()
+    };
 }
