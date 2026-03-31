@@ -1,0 +1,60 @@
+@page "/rozliczenia/dashboard"
+@using PKU.Application.Interfaces
+@inject IDeclarationService DeclarationService
+@rendermode InteractiveServer
+
+<PageTitle>Dashboard oswiadczen</PageTitle>
+
+<h3>Dashboard oswiadczen do obsluzenia</h3>
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-white bg-primary">
+            <div class="card-body">
+                <h5 class="card-title">Wszystkie</h5>
+                <p class="card-text display-6">@_totalCount</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-warning">
+            <div class="card-body">
+                <h5 class="card-title">Oczekujace</h5>
+                <p class="card-text display-6">@_pendingCount</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-success">
+            <div class="card-body">
+                <h5 class="card-title">Zatwierdzone</h5>
+                <p class="card-text display-6">@_approvedCount</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-danger">
+            <div class="card-body">
+                <h5 class="card-title">Odrzucone</h5>
+                <p class="card-text display-6">@_rejectedCount</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private int _totalCount;
+    private int _pendingCount;
+    private int _approvedCount;
+    private int _rejectedCount;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var all = await DeclarationService.GetAllAsync();
+        var list = all.ToList();
+        _totalCount = list.Count;
+        _pendingCount = list.Count(d => d.Status == PKU.Domain.Entities.DeclarationStatus.Submitted);
+        _approvedCount = list.Count(d => d.Status == PKU.Domain.Entities.DeclarationStatus.Approved);
+        _rejectedCount = list.Count(d => d.Status == PKU.Domain.Entities.DeclarationStatus.Rejected);
+    }
+}

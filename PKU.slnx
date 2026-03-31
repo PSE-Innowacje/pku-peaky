@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/PKU.Application/PKU.Application.csproj" />
+    <Project Path="src/PKU.Domain/PKU.Domain.csproj" />
+    <Project Path="src/PKU.Infrastructure/PKU.Infrastructure.csproj" />
+    <Project Path="src/PKU.Web/PKU.Web.csproj" />
+  </Folder>
+</Solution>
