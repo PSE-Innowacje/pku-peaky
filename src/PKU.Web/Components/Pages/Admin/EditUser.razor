@@ -1,4 +1,4 @@
-@page "/admin/uzytkownicy/{UserId}"
+@page "/admin/users/{UserId}"
 @attribute [Authorize(Roles = "Administrator")]
 @using PKU.Application.Interfaces
 @using PKU.Domain.Enums
@@ -267,7 +267,7 @@ else
         }
 
         await UserService.UpdateAsync(_user);
-        Navigation.NavigateTo("/admin/uzytkownicy");
+        Navigation.NavigateTo("/admin/users");
     }
 
     private void ToggleContractorType(ContractorType type, bool isChecked)
@@ -285,7 +285,7 @@ else
 
     private void GoBack()
     {
-        Navigation.NavigateTo("/admin/uzytkownicy");
+        Navigation.NavigateTo("/admin/users");
     }
 
     private static string GetContractorTypeLabel(ContractorType type) => type switch

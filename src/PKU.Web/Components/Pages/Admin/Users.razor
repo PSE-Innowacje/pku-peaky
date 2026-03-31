@@ -1,0 +1,88 @@
+@page "/admin/users"
+@attribute [Authorize(Roles = "Administrator")]
+@using PKU.Application.Interfaces
+@inject IUserService UserService
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+
+<PageTitle>Uzytkownicy</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h3 class="mb-0">Uzytkownicy</h3>
+    <button class="btn btn-primary" @onclick="@(() => Navigation.NavigateTo("/admin/users/new"))">
+        Dodaj uzytkownika
+    </button>
+</div>
+
+@if (_confirmDeleteUser is not null)
+{
+    <div class="alert alert-warning d-flex align-items-center justify-content-between">
+        <span>Czy na pewno chcesz usunac uzytkownika <strong>@_confirmDeleteUser.Email</strong>?</span>
+        <span>
+            <button class="btn btn-sm btn-danger me-2" @onclick="ConfirmDelete">Usun</button>
+            <button class="btn btn-sm btn-outline-secondary" @onclick="CancelDelete">Anuluj</button>
+        </span>
+    </div>
+}
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Imie i nazwisko</th>
+            <th>Email</th>
+            <th>Rola</th>
+            <th>Typ kontrahenta</th>
+            <th>Aktywny</th>
+            <th>Akcje</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (_users is not null)
+        {
+            @foreach (var user in _users)
+            {
+                <tr>
+                    <td>@user.FullName</td>
+                    <td>@user.Email</td>
+                    <td>@user.Role</td>
+                    <td>@string.Join(", ", user.ContractorTypes)</td>
+                    <td>@(user.IsActive ? "Tak" : "Nie")</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary me-1" @onclick="@(() => Navigation.NavigateTo($"/admin/users/{user.Id}"))">Edytuj</button>
+                        <button class="btn btn-sm btn-outline-danger" @onclick="@(() => RequestDelete(user))">Usun</button>
+                    </td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>
+
+@code {
+    private IEnumerable<PKU.Domain.Entities.User>? _users;
+    private PKU.Domain.Entities.User? _confirmDeleteUser;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _users = await UserService.GetAllAsync();
+    }
+
+    private void RequestDelete(PKU.Domain.Entities.User user)
+    {
+        _confirmDeleteUser = user;
+    }
+
+    private async Task ConfirmDelete()
+    {
+        if (_confirmDeleteUser is not null)
+        {
+            await UserService.DeleteAsync(_confirmDeleteUser.Id);
+            _confirmDeleteUser = null;
+            _users = await UserService.GetAllAsync();
+        }
+    }
+
+    private void CancelDelete()
+    {
+        _confirmDeleteUser = null;
+    }
+}
