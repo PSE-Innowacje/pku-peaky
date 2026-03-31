@@ -529,6 +529,151 @@ foreach ($sched in $schedules) {
 
 Write-Host "Seedowanie zakonczone - dodano $($schedules.Count) terminarzy." -ForegroundColor Green
 
+# --- Utworzenie kolekcji 'declaration_templates' ---
+$tplCollectionName = "declaration_templates"
+Write-Host "`n=== Tworzenie kolekcji '$tplCollectionName' ===" -ForegroundColor Cyan
+
+$date = [DateTime]::UtcNow.ToString("R")
+$auth = Get-CosmosAuthHeader -Verb "POST" -ResourceType "colls" -ResourceLink $resourceLink -Date $date -Key $cosmosKey
+
+$headers = @{
+    "Authorization" = $auth
+    "x-ms-version"  = "2018-12-31"
+    "x-ms-date"     = $date
+    "Content-Type"  = "application/json"
+}
+
+$tplCollBody = @{
+    id = $tplCollectionName
+    partitionKey = @{
+        paths = @("/id")
+        kind = "Hash"
+    }
+} | ConvertTo-Json -Depth 3
+
+Invoke-RestMethod -Uri "$cosmosEndpoint/$resourceLink/colls" -Method Post -Headers $headers -Body $tplCollBody | Out-Null
+Write-Host "Kolekcja '$tplCollectionName' utworzona." -ForegroundColor Green
+
+# --- Seedowanie wzorcow oswiadczen ---
+Write-Host "`n=== Seedowanie wzorcow oswiadczen ===" -ForegroundColor Cyan
+
+$templates = @(
+    @{
+        id              = "tpl-op-osdp-osdn"
+        Name            = "Oplata przejsciowa - OSDp / OSDn"
+        Description     = "Wzorzec oswiadczenia dla oplaty przejsciowej (OP) dla OSDp i OSDn"
+        FeeType         = 0  # OP
+        ContractorTypes = @(0, 1)  # OSDp, OSDn
+        AllowComment    = $true
+        IsActive        = $true
+        CreatedAt       = (Get-Date).ToUniversalTime().ToString("o")
+        Fields          = @(
+            @{ Number = "1";   Code = "IGDSUM"; Name = "Liczba odbiorcow koncowych w gospodarstwach domowych (suma 1.1-1.3)"; DataType = "Number"; IsRequired = $true; Unit = "szt" }
+            @{ Number = "1.1"; Code = "IGD1i";  Name = "Zuzywajacy < 500 kWh rocznie"; DataType = "Number"; IsRequired = $true; Unit = "szt" }
+            @{ Number = "1.2"; Code = "IGD2i";  Name = "Zuzywajacy 500-1200 kWh rocznie"; DataType = "Number"; IsRequired = $true; Unit = "szt" }
+            @{ Number = "1.3"; Code = "IGD3i";  Name = "Zuzywajacy > 1200 kWh rocznie"; DataType = "Number"; IsRequired = $true; Unit = "szt" }
+            @{ Number = "2";   Code = "OPSUM";  Name = "Suma mocy umownych odbiorcow koncowych (suma 2.1-2.4)"; DataType = "Number (9,3)"; IsRequired = $true; Unit = "kW" }
+            @{ Number = "2.1"; Code = "PnNi";   Name = "Przylaczeni do sieci nN kontrahenta"; DataType = "Number (9,3)"; IsRequired = $true; Unit = "kW" }
+            @{ Number = "2.2"; Code = "PSNi";   Name = "Przylaczeni do sieci SN kontrahenta"; DataType = "Number (9,3)"; IsRequired = $true; Unit = "kW" }
+            @{ Number = "2.3"; Code = "PWN";    Name = "Przylaczeni do sieci WN/NN kontrahenta"; DataType = "Number (9,3)"; IsRequired = $true; Unit = "kW" }
+            @{ Number = "2.4"; Code = "Posi";   Name = "Odbiorcy >= 400 GWh, >= 60% mocy umownej, koszt EE >= 15% produkcji"; DataType = "Number (9,3)"; IsRequired = $true; Unit = "kW" }
+        )
+    },
+    @{
+        id              = "tpl-oze-osd"
+        Name            = "Oplata OZE - OSDp / OSDn"
+        Description     = "Wzorzec oswiadczenia dla oplaty OZE dla OSDp i OSDn"
+        FeeType         = 1  # OZE
+        ContractorTypes = @(0, 1)
+        AllowComment    = $true
+        IsActive        = $true
+        CreatedAt       = (Get-Date).ToUniversalTime().ToString("o")
+        Fields          = @(
+            @{ Number = "1";   Code = "OZESUM"; Name = "Wielkosc srodkow z tytulu oplaty OZE (1.1 - 1.2)"; DataType = "Number (12,2)"; IsRequired = $true; Unit = "zl" }
+            @{ Number = "1.1"; Code = "OZEN";   Name = "Wielkosc naleznych srodkow z tytulu oplaty OZE"; DataType = "Number (12,2)"; IsRequired = $true; Unit = "zl" }
+            @{ Number = "1.2"; Code = "OZEPN";  Name = "Wierzytelnosci niesciagalne z poprzednich okresow"; DataType = "Number (12,2)"; IsRequired = $true; Unit = "zl" }
+            @{ Number = "2";   Code = "OZEE";   Name = "Ilosc energii - podstawa naliczania oplaty OZE"; DataType = "Number (9,3)"; IsRequired = $true; Unit = "MWh" }
+        )
+    },
+    @{
+        id              = "tpl-oze-ok-mag"
+        Name            = "Oplata OZE - Odbiorcy koncowi / Magazyny"
+        Description     = "Wzorzec dla oplaty OZE dla OK i Magazynow"
+        FeeType         = 1
+        ContractorTypes = @(4, 3)
+        AllowComment    = $true
+        IsActive        = $true
+        CreatedAt       = (Get-Date).ToUniversalTime().ToString("o")
+        Fields          = @(
+            @{ Number = "1"; Code = "OZEil"; Name = "Ilosc energii - podstawa naliczania oplaty OZE"; DataType = "Number (9,3)"; IsRequired = $true; Unit = "MWh" }
+        )
+    },
+    @{
+        id              = "tpl-oze-wyt"
+        Name            = "Oplata OZE - Wytworca"
+        Description     = "Wzorzec dla oplaty OZE dla wytworcow"
+        FeeType         = 1
+        ContractorTypes = @(2)
+        AllowComment    = $true
+        IsActive        = $true
+        CreatedAt       = (Get-Date).ToUniversalTime().ToString("o")
+        Fields          = @(
+            @{ Number = "1"; Code = "OZEil"; Name = "Planowana ilosc energii - podstawa naliczania oplaty OZE"; DataType = "Number (9,3)"; IsRequired = $true; Unit = "MWh" }
+        )
+    },
+    @{
+        id              = "tpl-oko-osd"
+        Name            = "Oplata kogeneracyjna - OSDp / OSDn"
+        Description     = "Wzorzec dla oplaty kogeneracyjnej dla OSDp i OSDn"
+        FeeType         = 2
+        ContractorTypes = @(0, 1)
+        AllowComment    = $true
+        IsActive        = $true
+        CreatedAt       = (Get-Date).ToUniversalTime().ToString("o")
+        Fields          = @(
+            @{ Number = "1";   Code = "OKOSUM"; Name = "Wielkosc srodkow z tytulu oplaty kogeneracyjnej (1.1 - 1.2)"; DataType = "Number (12,2)"; IsRequired = $true; Unit = "zl" }
+            @{ Number = "1.1"; Code = "OKON";   Name = "Wielkosc naleznych srodkow"; DataType = "Number (12,2)"; IsRequired = $true; Unit = "zl" }
+            @{ Number = "1.2"; Code = "OKOPN";  Name = "Wierzytelnosci niesciagalne z poprzednich okresow"; DataType = "Number (12,2)"; IsRequired = $true; Unit = "zl" }
+            @{ Number = "1.3"; Code = "OKOO";   Name = "Wielkosc pobranych srodkow"; DataType = "Number (12,2)"; IsRequired = $true; Unit = "zl" }
+            @{ Number = "2";   Code = "OKOE";   Name = "Ilosc energii - podstawa naliczania oplaty kogeneracyjnej"; DataType = "Number (9,3)"; IsRequired = $true; Unit = "MWh" }
+        )
+    },
+    @{
+        id              = "tpl-oko-ok-wyt-mag"
+        Name            = "Oplata kogeneracyjna - OK / Wyt / Mag"
+        Description     = "Wzorzec dla oplaty kogeneracyjnej dla OK, wytworcow i magazynow"
+        FeeType         = 2
+        ContractorTypes = @(4, 2, 3)
+        AllowComment    = $true
+        IsActive        = $true
+        CreatedAt       = (Get-Date).ToUniversalTime().ToString("o")
+        Fields          = @(
+            @{ Number = "1"; Code = "OKOE"; Name = "Ilosc energii - podstawa naliczania oplaty kogeneracyjnej"; DataType = "Number (9,3)"; IsRequired = $false; Unit = "MWh" }
+        )
+    }
+)
+
+$tplDocsResourceLink = "dbs/$databaseName/colls/$tplCollectionName"
+
+foreach ($tpl in $templates) {
+    $date = [DateTime]::UtcNow.ToString("R")
+    $auth = Get-CosmosAuthHeader -Verb "POST" -ResourceType "docs" -ResourceLink $tplDocsResourceLink -Date $date -Key $cosmosKey
+
+    $headers = @{
+        "Authorization"                = $auth
+        "x-ms-version"                 = "2018-12-31"
+        "x-ms-date"                    = $date
+        "Content-Type"                 = "application/json"
+        "x-ms-documentdb-partitionkey" = "[`"$($tpl.id)`"]"
+    }
+
+    $jsonBody = $tpl | ConvertTo-Json -Depth 5
+    Invoke-RestMethod -Uri "$cosmosEndpoint/$tplDocsResourceLink/docs" -Method Post -Headers $headers -Body ([System.Text.Encoding]::UTF8.GetBytes($jsonBody)) | Out-Null
+    Write-Host "  Dodano wzorzec: $($tpl.Name)" -ForegroundColor Gray
+}
+
+Write-Host "Seedowanie zakonczone - dodano $($templates.Count) wzorcow." -ForegroundColor Green
+
 # --- Podsumowanie ---
 Write-Host "`n=== Gotowe ===" -ForegroundColor Green
-Write-Host "Baza danych '$databaseName' z kolekcjami '$collectionName', '$declCollectionName' i '$schedCollectionName' jest gotowa na: $cosmosEndpoint" -ForegroundColor Gray
+Write-Host "Baza danych '$databaseName' z kolekcjami '$collectionName', '$declCollectionName', '$schedCollectionName' i '$tplCollectionName' jest gotowa na: $cosmosEndpoint" -ForegroundColor Gray

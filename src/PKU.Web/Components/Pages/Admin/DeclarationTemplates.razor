@@ -1,19 +1,125 @@
 @page "/admin/declaration-templates"
 @attribute [Authorize(Roles = "Administrator")]
 @using PKU.Application.Interfaces
+@using PKU.Domain.Entities
+@using PKU.Domain.Enums
+@using PKU.Domain.Services
 @inject IDeclarationTemplateService TemplateService
+@inject NavigationManager Navigation
 @rendermode InteractiveServer
 
 <PageTitle>Wzorce oswiadczen</PageTitle>
 
-<h3>Wzorce oswiadczen</h3>
-<p>Definiowanie i zarzadzanie wzorcami oswiadczen.</p>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h3 class="mb-0">Wzorce oswiadczen</h3>
+    <button class="btn btn-primary" @onclick="ShowAddForm">Dodaj wzorzec</button>
+</div>
+
+@if (!string.IsNullOrEmpty(_message))
+{
+    <div class="alert @(_isError ? "alert-danger" : "alert-success")">@_message</div>
+}
+
+@if (_showForm)
+{
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">@(_editingTemplate is null ? "Nowy wzorzec" : "Edycja wzorca")</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label">Nazwa *</label>
+                        <InputText @bind-Value="_formTemplate.Name" class="form-control" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Opis</label>
+                        <InputText @bind-Value="_formTemplate.Description" class="form-control" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Typ oplaty *</label>
+                        <InputSelect @bind-Value="_formTemplate.FeeType" class="form-select">
+                            @foreach (var ft in Enum.GetValues<FeeType>())
+                            {
+                                <option value="@ft">@ft — @ContractorFeeMapping.GetFeeTypeName(ft)</option>
+                            }
+                        </InputSelect>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Typy kontrahenta *</label>
+                        @foreach (var ct in Enum.GetValues<ContractorType>())
+                        {
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="tpl_ct_@ct"
+                                       checked="@(_formTemplate.ContractorTypes.Contains(ct))"
+                                       @onchange="@(e => ToggleContractorType(ct, (bool)e.Value!))" />
+                                <label class="form-check-label" for="tpl_ct_@ct">@ct</label>
+                            </div>
+                        }
+                    </div>
+                    <div class="mb-3 form-check">
+                        <InputCheckbox @bind-Value="_formTemplate.AllowComment" class="form-check-input" id="allowComment" />
+                        <label class="form-check-label" for="allowComment">Komentarz kontrahenta (TAK/NIE)</label>
+                    </div>
+                    <div class="mb-3 form-check">
+                        <InputCheckbox @bind-Value="_formTemplate.IsActive" class="form-check-input" id="isActiveTemplate" />
+                        <label class="form-check-label" for="isActiveTemplate">Aktywny</label>
+                    </div>
+                </div>
+            </div>
+
+            <h6 class="mt-3">Pozycje formularza</h6>
+            <table class="table table-sm table-bordered">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width:80px">Nr</th>
+                        <th style="width:120px">Kod</th>
+                        <th>Nazwa pozycji</th>
+                        <th style="width:130px">Typ danych</th>
+                        <th style="width:80px">Wymagane</th>
+                        <th style="width:80px">Jedn.</th>
+                        <th style="width:60px"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (int i = 0; i < _formTemplate.Fields.Count; i++)
+                    {
+                        var idx = i;
+                        <tr>
+                            <td><input class="form-control form-control-sm" @bind="_formTemplate.Fields[idx].Number" /></td>
+                            <td><input class="form-control form-control-sm" @bind="_formTemplate.Fields[idx].Code" /></td>
+                            <td><input class="form-control form-control-sm" @bind="_formTemplate.Fields[idx].Name" /></td>
+                            <td><input class="form-control form-control-sm" @bind="_formTemplate.Fields[idx].DataType" /></td>
+                            <td class="text-center">
+                                <input type="checkbox" class="form-check-input" @bind="_formTemplate.Fields[idx].IsRequired" />
+                            </td>
+                            <td><input class="form-control form-control-sm" @bind="_formTemplate.Fields[idx].Unit" /></td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-danger" @onclick="@(() => RemoveField(idx))">X</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            <button class="btn btn-sm btn-outline-secondary" @onclick="AddField">+ Dodaj pozycje</button>
+
+            <div class="mt-4">
+                <button class="btn btn-primary me-2" @onclick="SaveTemplate">Zapisz</button>
+                <button class="btn btn-outline-secondary" @onclick="CancelForm">Anuluj</button>
+            </div>
+        </div>
+    </div>
+}
 
 <table class="table table-striped">
     <thead>
         <tr>
             <th>Nazwa</th>
-            <th>Opis</th>
+            <th>Typ oplaty</th>
+            <th>Typy kontrahenta</th>
+            <th>Pozycje</th>
+            <th>Komentarz</th>
             <th>Aktywny</th>
             <th>Akcje</th>
         </tr>
@@ -21,14 +127,18 @@
     <tbody>
         @if (_templates is not null)
         {
-            @foreach (var template in _templates)
+            @foreach (var t in _templates)
             {
                 <tr>
-                    <td>@template.Name</td>
-                    <td>@template.Description</td>
-                    <td>@(template.IsActive ? "Tak" : "Nie")</td>
+                    <td>@t.Name</td>
+                    <td><span class="badge bg-info text-dark">@t.FeeType</span></td>
+                    <td>@string.Join(", ", t.ContractorTypes)</td>
+                    <td>@t.Fields.Count</td>
+                    <td>@(t.AllowComment ? "TAK" : "NIE")</td>
+                    <td>@(t.IsActive ? "Tak" : "Nie")</td>
                     <td>
-                        <button class="btn btn-sm btn-outline-primary">Edytuj</button>
+                        <button class="btn btn-sm btn-outline-primary me-1" @onclick="@(() => EditTemplate(t))">Edytuj</button>
+                        <button class="btn btn-sm btn-outline-danger" @onclick="@(() => DeleteTemplate(t.Id))">Usun</button>
                     </td>
                 </tr>
             }
@@ -37,10 +147,120 @@
 </table>
 
 @code {
-    private IEnumerable<PKU.Domain.Entities.DeclarationTemplate>? _templates;
+    private IEnumerable<DeclarationTemplate>? _templates;
+    private DeclarationTemplate _formTemplate = new();
+    private DeclarationTemplate? _editingTemplate;
+    private bool _showForm;
+    private string? _message;
+    private bool _isError;
 
     protected override async Task OnInitializedAsync()
     {
+        await LoadTemplates();
+    }
+
+    private async Task LoadTemplates()
+    {
         _templates = await TemplateService.GetAllAsync();
+    }
+
+    private void ShowAddForm()
+    {
+        _editingTemplate = null;
+        _formTemplate = new DeclarationTemplate();
+        _showForm = true;
+        _message = null;
+    }
+
+    private void EditTemplate(DeclarationTemplate template)
+    {
+        _editingTemplate = template;
+        _formTemplate = new DeclarationTemplate
+        {
+            Id = template.Id,
+            Name = template.Name,
+            Description = template.Description,
+            FeeType = template.FeeType,
+            ContractorTypes = new List<ContractorType>(template.ContractorTypes),
+            Fields = template.Fields.Select(f => new TemplateField
+            {
+                Number = f.Number,
+                Code = f.Code,
+                Name = f.Name,
+                DataType = f.DataType,
+                IsRequired = f.IsRequired,
+                Unit = f.Unit
+            }).ToList(),
+            AllowComment = template.AllowComment,
+            IsActive = template.IsActive,
+            CreatedAt = template.CreatedAt
+        };
+        _showForm = true;
+        _message = null;
+    }
+
+    private async Task SaveTemplate()
+    {
+        _message = null;
+        _isError = false;
+
+        if (string.IsNullOrWhiteSpace(_formTemplate.Name))
+        {
+            _message = "Nazwa jest wymagana.";
+            _isError = true;
+            return;
+        }
+        if (_formTemplate.ContractorTypes.Count == 0)
+        {
+            _message = "Wybierz co najmniej jeden typ kontrahenta.";
+            _isError = true;
+            return;
+        }
+
+        if (_editingTemplate is not null)
+        {
+            await TemplateService.UpdateAsync(_formTemplate);
+            _message = "Wzorzec zaktualizowany.";
+        }
+        else
+        {
+            await TemplateService.CreateAsync(_formTemplate);
+            _message = "Wzorzec utworzony.";
+        }
+
+        _showForm = false;
+        await LoadTemplates();
+    }
+
+    private void CancelForm()
+    {
+        _showForm = false;
+        _message = null;
+    }
+
+    private async Task DeleteTemplate(string id)
+    {
+        await TemplateService.DeleteAsync(id);
+        _message = "Wzorzec usuniety.";
+        _isError = false;
+        await LoadTemplates();
+    }
+
+    private void AddField()
+    {
+        _formTemplate.Fields.Add(new TemplateField());
+    }
+
+    private void RemoveField(int index)
+    {
+        _formTemplate.Fields.RemoveAt(index);
+    }
+
+    private void ToggleContractorType(ContractorType type, bool isChecked)
+    {
+        if (isChecked && !_formTemplate.ContractorTypes.Contains(type))
+            _formTemplate.ContractorTypes.Add(type);
+        else if (!isChecked)
+            _formTemplate.ContractorTypes.Remove(type);
     }
 }
