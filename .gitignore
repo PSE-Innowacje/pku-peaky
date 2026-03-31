@@ -54,3 +54,4 @@ appsettings.*.json
 !appsettings.Development.json
 todo/
 .claude/settings.local.json
+src/.claude/settings.local.json
