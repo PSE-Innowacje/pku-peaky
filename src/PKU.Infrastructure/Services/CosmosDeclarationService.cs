@@ -61,6 +61,11 @@ public class CosmosDeclarationService : IDeclarationService
         await _container.CreateItemAsync(declaration, new PartitionKey(declaration.Id));
     }
 
+    public async Task UpdateAsync(Declaration declaration)
+    {
+        await _container.UpsertItemAsync(declaration, new PartitionKey(declaration.Id));
+    }
+
     public async Task UpdateStatusAsync(string id, DeclarationStatus status)
     {
         try
