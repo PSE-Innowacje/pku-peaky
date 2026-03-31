@@ -1,6 +1,8 @@
 @page "/rozliczenia/schedule"
 @attribute [Authorize(Roles = "Kontrahent,Administrator")]
 @using PKU.Application.Interfaces
+@using PKU.Domain.Entities
+@using PKU.Domain.Enums
 @inject IScheduleService ScheduleService
 @rendermode InteractiveServer
 
@@ -9,30 +11,40 @@
 <h3>Terminarz rozliczen</h3>
 <p>Przeglad aktualnych terminow rozliczen.</p>
 
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>Nazwa</th>
-            <th>Data rozpoczecia</th>
-            <th>Data zakonczenia</th>
-            <th>Status</th>
-        </tr>
-    </thead>
-    <tbody>
-        @if (_schedules is not null)
-        {
-            @foreach (var schedule in _schedules)
+@if (_schedules is not null && _schedules.Any())
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Typ oplaty</th>
+                <th>Typ kontrahenta</th>
+                <th>Skladanie oswiadczenia</th>
+                <th>Wystawienie faktury</th>
+                <th>Korekta oswiadczenia</th>
+                <th>Faktura po korekcie</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var schedule in _schedules.Where(s => s.IsActive))
             {
                 <tr>
-                    <td>@schedule.Name</td>
-                    <td>@schedule.StartDate.ToString("yyyy-MM-dd")</td>
-                    <td>@schedule.EndDate.ToString("yyyy-MM-dd")</td>
-                    <td>@(schedule.IsActive ? "Aktywny" : "Nieaktywny")</td>
+                    <td>@schedule.FeeType</td>
+                    <td>@GetContractorTypeLabel(schedule.ContractorType)</td>
+                    <td>@FormatItem(schedule, ScheduleItemType.DeclarationSubmit)</td>
+                    <td>@FormatItem(schedule, ScheduleItemType.DeclarationInvoice)</td>
+                    <td>@FormatItem(schedule, ScheduleItemType.DeclarationCorrection)</td>
+                    <td>@FormatItem(schedule, ScheduleItemType.DeclarationCorrectionInvoice)</td>
+                    <td>Aktywny</td>
                 </tr>
             }
-        }
-    </tbody>
-</table>
+        </tbody>
+    </table>
+}
+else
+{
+    <div class="alert alert-info">Brak aktywnych terminarzy.</div>
+}
 
 @code {
     private IEnumerable<PKU.Domain.Entities.Schedule>? _schedules;
@@ -41,4 +53,22 @@
     {
         _schedules = await ScheduleService.GetAllAsync();
     }
+
+    private static string FormatItem(PKU.Domain.Entities.Schedule schedule, ScheduleItemType itemType)
+    {
+        var item = schedule.Items.FirstOrDefault(i => i.ItemType == itemType);
+        if (item is null) return "-";
+        var dayLabel = item.DayType == DayType.CalendarDay ? "kal." : "rob.";
+        return $"{item.Days} dni {dayLabel}";
+    }
+
+    private static string GetContractorTypeLabel(ContractorType type) => type switch
+    {
+        ContractorType.OSDp => "OSDp",
+        ContractorType.OSDn => "OSDn",
+        ContractorType.Wytworca => "Wytworca",
+        ContractorType.Magazyn => "Magazyn",
+        ContractorType.OdbiorcaKoncowy => "Odbiorca Koncowy",
+        _ => type.ToString()
+    };
 }

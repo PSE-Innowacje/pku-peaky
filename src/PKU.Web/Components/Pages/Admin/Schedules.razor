@@ -1,48 +1,135 @@
 @page "/admin/schedules"
 @attribute [Authorize(Roles = "Administrator")]
 @using PKU.Application.Interfaces
+@using PKU.Domain.Entities
+@using PKU.Domain.Enums
 @inject IScheduleService ScheduleService
+@inject NavigationManager Navigation
 @rendermode InteractiveServer
 
 <PageTitle>Definiowanie terminarzy</PageTitle>
 
 <h3>Definiowanie terminarzy</h3>
-<p>Konfiguracja terminarzy rozliczen.</p>
+<p>Konfiguracja terminarzy rozliczen miesięcznych.</p>
 
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>Nazwa</th>
-            <th>Data rozpoczecia</th>
-            <th>Data zakonczenia</th>
-            <th>Aktywny</th>
-            <th>Akcje</th>
-        </tr>
-    </thead>
-    <tbody>
-        @if (_schedules is not null)
-        {
+<div class="mb-3">
+    <button class="btn btn-primary" @onclick="AddSchedule">Dodaj terminarz</button>
+</div>
+
+@if (_schedules is not null && _schedules.Any())
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Typ oplaty</th>
+                <th>Typ kontrahenta</th>
+                <th>Skladanie oswiadczenia</th>
+                <th>Wystawienie faktury</th>
+                <th>Korekta oswiadczenia</th>
+                <th>Faktura po korekcie</th>
+                <th>Aktywny</th>
+                <th>Akcje</th>
+            </tr>
+        </thead>
+        <tbody>
             @foreach (var schedule in _schedules)
             {
                 <tr>
-                    <td>@schedule.Name</td>
-                    <td>@schedule.StartDate.ToString("yyyy-MM-dd")</td>
-                    <td>@schedule.EndDate.ToString("yyyy-MM-dd")</td>
+                    <td>@schedule.FeeType</td>
+                    <td>@GetContractorTypeLabel(schedule.ContractorType)</td>
+                    <td>@FormatItem(schedule, ScheduleItemType.DeclarationSubmit)</td>
+                    <td>@FormatItem(schedule, ScheduleItemType.DeclarationInvoice)</td>
+                    <td>@FormatItem(schedule, ScheduleItemType.DeclarationCorrection)</td>
+                    <td>@FormatItem(schedule, ScheduleItemType.DeclarationCorrectionInvoice)</td>
                     <td>@(schedule.IsActive ? "Tak" : "Nie")</td>
                     <td>
-                        <button class="btn btn-sm btn-outline-primary">Edytuj</button>
+                        <button class="btn btn-sm btn-outline-primary me-1" @onclick="() => EditSchedule(schedule.Id)">Edytuj</button>
+                        <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteSchedule(schedule.Id)">Usun</button>
                     </td>
                 </tr>
             }
-        }
-    </tbody>
-</table>
+        </tbody>
+    </table>
+}
+else
+{
+    <div class="alert alert-info">Brak zdefiniowanych terminarzy.</div>
+}
+
+@if (_confirmDeleteId is not null)
+{
+    <div class="modal d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Potwierdzenie usunięcia</h5>
+                </div>
+                <div class="modal-body">
+                    <p>Czy na pewno chcesz usunac ten terminarz?</p>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="CancelDelete">Anuluj</button>
+                    <button class="btn btn-danger" @onclick="ConfirmDelete">Usun</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
 
 @code {
-    private IEnumerable<PKU.Domain.Entities.Schedule>? _schedules;
+    private IEnumerable<Schedule>? _schedules;
+    private string? _confirmDeleteId;
 
     protected override async Task OnInitializedAsync()
     {
         _schedules = await ScheduleService.GetAllAsync();
     }
+
+    private void AddSchedule()
+    {
+        Navigation.NavigateTo("/admin/schedules/new");
+    }
+
+    private void EditSchedule(string id)
+    {
+        Navigation.NavigateTo($"/admin/schedules/{id}");
+    }
+
+    private void DeleteSchedule(string id)
+    {
+        _confirmDeleteId = id;
+    }
+
+    private void CancelDelete()
+    {
+        _confirmDeleteId = null;
+    }
+
+    private async Task ConfirmDelete()
+    {
+        if (_confirmDeleteId is not null)
+        {
+            await ScheduleService.DeleteAsync(_confirmDeleteId);
+            _confirmDeleteId = null;
+            _schedules = await ScheduleService.GetAllAsync();
+        }
+    }
+
+    private static string FormatItem(Schedule schedule, ScheduleItemType itemType)
+    {
+        var item = schedule.Items.FirstOrDefault(i => i.ItemType == itemType);
+        if (item is null) return "-";
+        var dayLabel = item.DayType == DayType.CalendarDay ? "kal." : "rob.";
+        return $"{item.Days} dni {dayLabel}";
+    }
+
+    private static string GetContractorTypeLabel(ContractorType type) => type switch
+    {
+        ContractorType.OSDp => "OSDp",
+        ContractorType.OSDn => "OSDn",
+        ContractorType.Wytworca => "Wytworca",
+        ContractorType.Magazyn => "Magazyn",
+        ContractorType.OdbiorcaKoncowy => "Odbiorca Koncowy",
+        _ => type.ToString()
+    };
 }

@@ -1,0 +1,172 @@
+@page "/admin/schedules/{ScheduleId}"
+@attribute [Authorize(Roles = "Administrator")]
+@using PKU.Application.Interfaces
+@using PKU.Domain.Entities
+@using PKU.Domain.Enums
+@inject IScheduleService ScheduleService
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+
+<PageTitle>Edytuj terminarz</PageTitle>
+
+<h3>Edytuj terminarz</h3>
+
+@if (_schedule is null)
+{
+    <div class="alert alert-warning">Nie znaleziono terminarza.</div>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-8">
+            @if (!string.IsNullOrEmpty(_errorMessage))
+            {
+                <div class="alert alert-danger">@_errorMessage</div>
+            }
+
+            <EditForm Model="_schedule" OnValidSubmit="HandleSubmit" FormName="editSchedule">
+                <h5 class="mt-3 mb-3">Parametry terminarza</h5>
+
+                <div class="mb-3">
+                    <label class="form-label">Typ oplaty *</label>
+                    <InputSelect @bind-Value="_schedule.FeeType" class="form-select">
+                        @foreach (var fee in Enum.GetValues<FeeType>())
+                        {
+                            <option value="@fee">@fee</option>
+                        }
+                    </InputSelect>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Typ kontrahenta *</label>
+                    <InputSelect @bind-Value="_schedule.ContractorType" class="form-select">
+                        @foreach (var ct in Enum.GetValues<ContractorType>())
+                        {
+                            <option value="@ct">@GetContractorTypeLabel(ct)</option>
+                        }
+                    </InputSelect>
+                </div>
+
+                <div class="mb-3 form-check">
+                    <InputCheckbox @bind-Value="_schedule.IsActive" class="form-check-input" id="isActive" />
+                    <label class="form-check-label" for="isActive">Aktywny</label>
+                </div>
+
+                <h5 class="mt-4 mb-3">Pozycje terminarza</h5>
+                <p class="text-muted">Podaj liczbe dni od poczatku miesiaca oraz typ dnia dla kazdej pozycji.</p>
+
+                @foreach (var item in _items)
+                {
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <h6 class="card-title">@GetItemTypeLabel(item.ItemType)</h6>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label class="form-label">Liczba dni *</label>
+                                    <InputNumber @bind-Value="item.Days" class="form-control" min="1" max="31" />
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Typ dnia *</label>
+                                    <InputSelect @bind-Value="item.DayType" class="form-select">
+                                        <option value="@DayType.CalendarDay">Dzien kalendarzowy</option>
+                                        <option value="@DayType.BusinessDay">Dzien roboczy</option>
+                                    </InputSelect>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                <div class="mt-4 mb-3">
+                    <button type="submit" class="btn btn-primary me-2">Zapisz</button>
+                    <button type="button" class="btn btn-outline-secondary" @onclick="GoBack">Anuluj</button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public string ScheduleId { get; set; } = string.Empty;
+
+    private Schedule? _schedule;
+    private List<ScheduleItem> _items = [];
+    private string? _errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var original = await ScheduleService.GetByIdAsync(ScheduleId);
+        if (original is null) return;
+
+        _schedule = new Schedule
+        {
+            Id = original.Id,
+            FeeType = original.FeeType,
+            ContractorType = original.ContractorType,
+            IsActive = original.IsActive,
+
+        };
+
+        _items = Enum.GetValues<ScheduleItemType>()
+            .Select(type =>
+            {
+                var existing = original.Items.FirstOrDefault(i => i.ItemType == type);
+                return existing is not null
+                    ? new ScheduleItem { ItemType = type, Days = existing.Days, DayType = existing.DayType }
+                    : new ScheduleItem { ItemType = type, Days = 10, DayType = DayType.CalendarDay };
+            })
+            .ToList();
+    }
+
+    private async Task HandleSubmit()
+    {
+        if (_schedule is null) return;
+        _errorMessage = null;
+
+        foreach (var item in _items)
+        {
+            if (item.Days < 1)
+            {
+                _errorMessage = $"Liczba dni dla pozycji '{GetItemTypeLabel(item.ItemType)}' musi byc wieksza od 0.";
+                return;
+            }
+        }
+
+        var existing = await ScheduleService.GetAllAsync();
+        if (existing.Any(s => s.FeeType == _schedule.FeeType
+                              && s.ContractorType == _schedule.ContractorType
+                              && s.Id != _schedule.Id))
+        {
+            _errorMessage = "Terminarz dla wybranego typu oplaty i kontrahenta juz istnieje.";
+            return;
+        }
+
+        _schedule.Items = _items.ToList();
+        await ScheduleService.UpdateAsync(_schedule);
+        Navigation.NavigateTo("/admin/schedules");
+    }
+
+    private void GoBack()
+    {
+        Navigation.NavigateTo("/admin/schedules");
+    }
+
+    private static string GetContractorTypeLabel(ContractorType type) => type switch
+    {
+        ContractorType.OSDp => "OSDp",
+        ContractorType.OSDn => "OSDn",
+        ContractorType.Wytworca => "Wytworca",
+        ContractorType.Magazyn => "Magazyn",
+        ContractorType.OdbiorcaKoncowy => "Odbiorca Koncowy",
+        _ => type.ToString()
+    };
+
+    private static string GetItemTypeLabel(ScheduleItemType type) => type switch
+    {
+        ScheduleItemType.DeclarationSubmit => "Skladanie oswiadczenia rozliczeniowego",
+        ScheduleItemType.DeclarationInvoice => "Wystawienie faktury za swiadczenie uslug",
+        ScheduleItemType.DeclarationCorrection => "Skladanie korygujacego oswiadczenia rozliczeniowego",
+        ScheduleItemType.DeclarationCorrectionInvoice => "Wystawienie faktury za swiadczenie uslug po korekcie",
+        _ => type.ToString()
+    };
+}
