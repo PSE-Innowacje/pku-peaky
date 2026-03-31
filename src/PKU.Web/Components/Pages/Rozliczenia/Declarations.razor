@@ -8,6 +8,7 @@
 @inject IDeclarationService DeclarationService
 @inject IUserService UserService
 @inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager Navigation
 @rendermode InteractiveServer
 
 <PageTitle>Oswiadczenia rozliczeniowe</PageTitle>
@@ -99,7 +100,7 @@ else if (_filteredDeclarations is not null && _filteredDeclarations.Any())
                 {
                     <tr>
                         <td>
-                            <button class="btn btn-sm btn-primary">Zloz oswiadczenie</button>
+                            <button class="btn btn-sm btn-primary" @onclick="() => GoToDeclaration(d.Id)">Zloz oswiadczenie</button>
                         </td>
                         <td>
                             <span class="badge bg-info text-dark">@d.FeeType</span>
@@ -172,7 +173,7 @@ else if (_filteredDeclarations is not null && _filteredDeclarations.Any())
                         </td>
                         <td>@d.SubmittedAt?.ToString("yyyy-MM-dd HH:mm")</td>
                         <td>
-                            <button class="btn btn-sm btn-outline-primary">Podglad</button>
+                            <button class="btn btn-sm btn-outline-primary" @onclick="() => GoToDeclaration(d.Id)">Podglad</button>
                         </td>
                     </tr>
                 }
@@ -257,6 +258,11 @@ else
         DeclarationStatus.Submitted => "Zlozone",
         _ => status.ToString()
     };
+
+    private void GoToDeclaration(string id)
+    {
+        Navigation.NavigateTo($"/rozliczenia/declarations/{id}");
+    }
 
     private static string GetMonthName(int month) => month switch
     {

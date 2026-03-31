@@ -1,0 +1,358 @@
+@page "/rozliczenia/declarations/{DeclarationId}"
+@attribute [Authorize(Roles = "Kontrahent,Administrator")]
+@using System.Security.Claims
+@using PKU.Application.Interfaces
+@using PKU.Domain.Entities
+@using PKU.Domain.Enums
+@using PKU.Domain.Services
+@inject IDeclarationService DeclarationService
+@inject IDeclarationTemplateService TemplateService
+@inject IUserService UserService
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+
+<PageTitle>Uzupelnianie oswiadczenia</PageTitle>
+
+@if (_loading)
+{
+    <div class="d-flex justify-content-center my-5">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Ladowanie...</span>
+        </div>
+    </div>
+}
+else if (_declaration is null)
+{
+    <div class="alert alert-danger">Nie znaleziono oswiadczenia.</div>
+    <a href="/rozliczenia/declarations" class="btn btn-secondary">Powrot</a>
+}
+else if (_accessDenied)
+{
+    <div class="alert alert-danger">Brak dostepu do tego oswiadczenia.</div>
+    <a href="/rozliczenia/declarations" class="btn btn-secondary">Powrot</a>
+}
+else
+{
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3 class="mb-0">Oswiadczenie — @ContractorFeeMapping.GetFeeTypeName(_declaration.FeeType)</h3>
+        <a href="/rozliczenia/declarations" class="btn btn-outline-secondary btn-sm">Powrot do listy</a>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-3">
+                    <strong>Typ oplaty:</strong> @_declaration.FeeType
+                </div>
+                <div class="col-md-3">
+                    <strong>Kategoria:</strong> @ContractorFeeMapping.GetFeeCategoryName(_declaration.FeeCategory)
+                </div>
+                <div class="col-md-3">
+                    <strong>Okres:</strong> @GetMonthName(_declaration.BillingMonth) @_declaration.BillingYear
+                </div>
+                <div class="col-md-3">
+                    <strong>Status:</strong>
+                    <span class="badge @GetStatusBadgeClass(_declaration.Status)">@GetStatusName(_declaration.Status)</span>
+                </div>
+            </div>
+            @if (_declaration.Deadline.HasValue)
+            {
+                <div class="row mt-2">
+                    <div class="col-md-3">
+                        <strong>Termin zlozenia:</strong> @_declaration.Deadline.Value.ToString("yyyy-MM-dd")
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    @if (_declaration.Status == DeclarationStatus.Submitted)
+    {
+        <div class="alert alert-info">To oswiadczenie zostalo juz zlozone i nie mozna go edytowac.</div>
+    }
+
+    @if (_template is null)
+    {
+        <div class="alert alert-warning">
+            Brak aktywnego wzoru oswiadczenia dla typu oplaty @_declaration.FeeType.
+            Skontaktuj sie z administratorem.
+        </div>
+    }
+    else
+    {
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">@_template.Name</h5>
+                @if (!string.IsNullOrWhiteSpace(_template.Description))
+                {
+                    <small class="text-muted">@_template.Description</small>
+                }
+            </div>
+            <div class="card-body">
+                @if (_successMessage is not null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show">
+                        @_successMessage
+                        <button type="button" class="btn-close" @onclick="() => _successMessage = null"></button>
+                    </div>
+                }
+
+                @if (_errorMessage is not null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show">
+                        @_errorMessage
+                        <button type="button" class="btn-close" @onclick="() => _errorMessage = null"></button>
+                    </div>
+                }
+
+                <table class="table table-bordered">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width: 60px;">Poz.</th>
+                            <th>Kod</th>
+                            <th>Nazwa</th>
+                            <th style="width: 200px;">Wartosc</th>
+                            <th style="width: 80px;">Jednostka</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var field in _template.Fields)
+                        {
+                            <tr>
+                                <td class="text-center">@field.Number</td>
+                                <td><code>@field.Code</code></td>
+                                <td>
+                                    @field.Name
+                                    @if (field.IsRequired)
+                                    {
+                                        <span class="text-danger">*</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (_declaration.Status == DeclarationStatus.Submitted)
+                                    {
+                                        <span>@GetFieldValue(field.Code)</span>
+                                    }
+                                    else
+                                    {
+                                        <input type="@GetInputType(field.DataType)"
+                                               class="form-control form-control-sm"
+                                               value="@GetFieldValue(field.Code)"
+                                               @onchange="(e) => SetFieldValue(field.Code, e.Value?.ToString())"
+                                               step="any"
+                                               placeholder="@(field.IsRequired ? "Wymagane" : "Opcjonalne")" />
+                                    }
+                                </td>
+                                <td class="text-muted">@field.Unit</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+
+                @if (_template.AllowComment)
+                {
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Komentarz</label>
+                        @if (_declaration.Status == DeclarationStatus.Submitted)
+                        {
+                            <p>@(_declaration.Comment ?? "—")</p>
+                        }
+                        else
+                        {
+                            <textarea class="form-control" rows="3"
+                                      @bind="_declaration.Comment"
+                                      placeholder="Opcjonalny komentarz do oswiadczenia"></textarea>
+                        }
+                    </div>
+                }
+
+                @if (_declaration.Status != DeclarationStatus.Submitted)
+                {
+                    <div class="d-flex gap-2 mt-3">
+                        <button class="btn btn-warning" @onclick="SaveDraftAsync" disabled="@_saving">
+                            @if (_saving)
+                            {
+                                <span class="spinner-border spinner-border-sm me-1"></span>
+                            }
+                            Zapisz roboczo
+                        </button>
+                        <button class="btn btn-success" @onclick="SubmitDeclarationAsync" disabled="@_saving">
+                            @if (_saving)
+                            {
+                                <span class="spinner-border spinner-border-sm me-1"></span>
+                            }
+                            Zloz oswiadczenie
+                        </button>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+}
+
+@code {
+    [Parameter] public string DeclarationId { get; set; } = string.Empty;
+
+    private Declaration? _declaration;
+    private DeclarationTemplate? _template;
+    private User? _user;
+    private bool _loading = true;
+    private bool _saving;
+    private bool _accessDenied;
+    private string? _successMessage;
+    private string? _errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var userId = authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (userId is null)
+        {
+            _loading = false;
+            return;
+        }
+
+        _user = await UserService.GetByIdAsync(userId);
+        _declaration = await DeclarationService.GetByIdAsync(DeclarationId);
+
+        if (_declaration is not null && _user is not null)
+        {
+            // Verify access: contractor can only see own declarations
+            if (_user.Role == UserRole.Kontrahent && _declaration.UserId != _user.Id)
+            {
+                _accessDenied = true;
+                _loading = false;
+                return;
+            }
+
+            // Find matching template
+            var templates = await TemplateService.GetAllAsync();
+            _template = templates.FirstOrDefault(t =>
+                t.IsActive &&
+                t.FeeType == _declaration.FeeType &&
+                t.ContractorTypes.Contains(_declaration.ContractorType));
+        }
+
+        _loading = false;
+    }
+
+    private string GetFieldValue(string code)
+    {
+        return _declaration?.FieldValues.TryGetValue(code, out var value) == true ? value : string.Empty;
+    }
+
+    private void SetFieldValue(string code, string? value)
+    {
+        if (_declaration is null) return;
+        _declaration.FieldValues[code] = value ?? string.Empty;
+    }
+
+    private async Task SaveDraftAsync()
+    {
+        if (_declaration is null) return;
+
+        _saving = true;
+        _errorMessage = null;
+        _successMessage = null;
+
+        try
+        {
+            _declaration.Status = DeclarationStatus.Draft;
+            await DeclarationService.UpdateAsync(_declaration);
+            _successMessage = "Oswiadczenie zapisano roboczo.";
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"Blad zapisu: {ex.Message}";
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+
+    private async Task SubmitDeclarationAsync()
+    {
+        if (_declaration is null || _template is null || _user is null) return;
+
+        _saving = true;
+        _errorMessage = null;
+        _successMessage = null;
+
+        // Validate required fields
+        var missingFields = _template.Fields
+            .Where(f => f.IsRequired && string.IsNullOrWhiteSpace(GetFieldValue(f.Code)))
+            .Select(f => f.Name)
+            .ToList();
+
+        if (missingFields.Any())
+        {
+            _errorMessage = $"Uzupelnij wymagane pola: {string.Join(", ", missingFields)}";
+            _saving = false;
+            return;
+        }
+
+        try
+        {
+            _declaration.Status = DeclarationStatus.Submitted;
+            _declaration.SubmittedAt = DateTime.UtcNow;
+            var generator = new DeclarationNumberGenerator();
+            _declaration.DeclarationNumber = generator.GenerateBasicNumber(
+                _declaration.FeeType,
+                _user.ContractorAbbreviation ?? _user.ContractorCode ?? "UNKNOWN",
+                _declaration.BillingYear,
+                _declaration.BillingMonth,
+                subperiod: 1,
+                version: 1);
+
+            await DeclarationService.UpdateAsync(_declaration);
+            _successMessage = $"Oswiadczenie zlozone pomyslnie. Numer: {_declaration.DeclarationNumber}";
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"Blad skladania: {ex.Message}";
+            _declaration.Status = DeclarationStatus.Draft;
+            _declaration.SubmittedAt = null;
+            _declaration.DeclarationNumber = string.Empty;
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+
+    private static string GetInputType(string dataType) => dataType?.ToLower() switch
+    {
+        "number" => "number",
+        "decimal" => "number",
+        "text" => "text",
+        "date" => "date",
+        _ => "number"
+    };
+
+    private static string GetStatusBadgeClass(DeclarationStatus status) => status switch
+    {
+        DeclarationStatus.NotSubmitted => "bg-secondary",
+        DeclarationStatus.Draft => "bg-warning text-dark",
+        DeclarationStatus.Submitted => "bg-success",
+        _ => "bg-secondary"
+    };
+
+    private static string GetStatusName(DeclarationStatus status) => status switch
+    {
+        DeclarationStatus.NotSubmitted => "Nie zlozone",
+        DeclarationStatus.Draft => "Robocze",
+        DeclarationStatus.Submitted => "Zlozone",
+        _ => status.ToString()
+    };
+
+    private static string GetMonthName(int month) => month switch
+    {
+        1 => "Styczen", 2 => "Luty", 3 => "Marzec", 4 => "Kwiecien",
+        5 => "Maj", 6 => "Czerwiec", 7 => "Lipiec", 8 => "Sierpien",
+        9 => "Wrzesien", 10 => "Pazdziernik", 11 => "Listopad", 12 => "Grudzien",
+        _ => month.ToString()
+    };
+}

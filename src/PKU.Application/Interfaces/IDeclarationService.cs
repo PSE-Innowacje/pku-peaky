@@ -10,6 +10,8 @@ public interface IDeclarationService
     Task CreateAsync(Declaration declaration);
     Task UpdateStatusAsync(string id, DeclarationStatus status);
 
+    Task UpdateAsync(Declaration declaration);
+
     /// <summary>
     /// Returns declarations for a contractor for a given month/year.
     /// If declarations don't exist yet, creates them with NotSubmitted status.

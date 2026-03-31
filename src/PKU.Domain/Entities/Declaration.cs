@@ -23,4 +23,10 @@ public class Declaration
 
     // Schedule deadline
     public DateTime? Deadline { get; set; }
+
+    // Field values filled by contractor (key = TemplateField.Code, value = entered value)
+    public Dictionary<string, string> FieldValues { get; set; } = new();
+
+    // Optional comment from contractor
+    public string? Comment { get; set; }
 }
