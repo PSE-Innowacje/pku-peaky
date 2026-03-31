@@ -16,56 +16,112 @@ public class InMemoryUserService : IUserService
             new User
             {
                 Id = "1",
-                Name = "Administrator Systemowy",
+                FirstName = "Administrator",
+                LastName = "Systemowy",
                 Email = "admin@pku.pl",
                 PasswordHash = hash,
                 Role = UserRole.Administrator,
-                ContractorType = ContractorType.None
+                ContractorTypes = []
             },
             new User
             {
                 Id = "2",
-                Name = "Jan Kowalski (OSDp)",
+                FirstName = "Jan",
+                LastName = "Kowalski",
                 Email = "osdp@pku.pl",
                 PasswordHash = hash,
                 Role = UserRole.Kontrahent,
-                ContractorType = ContractorType.OSDp
+                ContractorAbbreviation = "OSDp-JK",
+                ContractorFullName = "Jan Kowalski Sp. z o.o.",
+                ContractorShortName = "JK Sp.",
+                KRS = "0000123456",
+                NIP = "1234567890",
+                HeadquartersAddress = "ul. Energetyczna 1, 00-001 Warszawa",
+                ContractorCode = "KON-001",
+                ContractorTypes = [ContractorType.OSDp],
+                ContractNumber = "UP/2025/001",
+                ContractStartDate = new DateTime(2025, 1, 1),
+                ContractEndDate = new DateTime(2026, 12, 31)
             },
             new User
             {
                 Id = "3",
-                Name = "Anna Nowak (OSDn)",
+                FirstName = "Anna",
+                LastName = "Nowak",
                 Email = "osdn@pku.pl",
                 PasswordHash = hash,
                 Role = UserRole.Kontrahent,
-                ContractorType = ContractorType.OSDn
+                ContractorAbbreviation = "OSDn-AN",
+                ContractorFullName = "Anna Nowak Energia S.A.",
+                ContractorShortName = "AN Energia",
+                KRS = "0000234567",
+                NIP = "2345678901",
+                HeadquartersAddress = "ul. Przesylowa 5, 00-002 Krakow",
+                ContractorCode = "KON-002",
+                ContractorTypes = [ContractorType.OSDn],
+                ContractNumber = "UP/2025/002",
+                ContractStartDate = new DateTime(2025, 3, 1),
+                ContractEndDate = new DateTime(2027, 2, 28)
             },
             new User
             {
                 Id = "4",
-                Name = "Piotr Wisniewski (OK)",
+                FirstName = "Piotr",
+                LastName = "Wisniewski",
                 Email = "ok@pku.pl",
                 PasswordHash = hash,
                 Role = UserRole.Kontrahent,
-                ContractorType = ContractorType.OK
+                ContractorAbbreviation = "OK-PW",
+                ContractorFullName = "Piotr Wisniewski Odbiorca Koncowy",
+                ContractorShortName = "PW Odbiorca",
+                KRS = "0000345678",
+                NIP = "3456789012",
+                HeadquartersAddress = "ul. Odbiorcza 10, 00-003 Gdansk",
+                ContractorCode = "KON-003",
+                ContractorTypes = [ContractorType.OdbiorcaKoncowy],
+                ContractNumber = "UP/2025/003",
+                ContractStartDate = new DateTime(2025, 6, 1),
+                ContractEndDate = new DateTime(2026, 5, 31)
             },
             new User
             {
                 Id = "5",
-                Name = "Maria Zielinska (Wyt)",
+                FirstName = "Maria",
+                LastName = "Zielinska",
                 Email = "wyt@pku.pl",
                 PasswordHash = hash,
                 Role = UserRole.Kontrahent,
-                ContractorType = ContractorType.Wyt
+                ContractorAbbreviation = "WYT-MZ",
+                ContractorFullName = "Maria Zielinska Wytwarzanie Sp. z o.o.",
+                ContractorShortName = "MZ Wyt",
+                KRS = "0000456789",
+                NIP = "4567890123",
+                HeadquartersAddress = "ul. Wytworcza 20, 00-004 Poznan",
+                ContractorCode = "KON-004",
+                ContractorTypes = [ContractorType.Wytworca],
+                ContractNumber = "UP/2025/004",
+                ContractStartDate = new DateTime(2025, 1, 15),
+                ContractEndDate = new DateTime(2027, 1, 14)
             },
             new User
             {
                 Id = "6",
-                Name = "Tomasz Lewandowski (Mag)",
+                FirstName = "Tomasz",
+                LastName = "Lewandowski",
                 Email = "mag@pku.pl",
                 PasswordHash = hash,
                 Role = UserRole.Kontrahent,
-                ContractorType = ContractorType.Mag
+                ContractorAbbreviation = "MAG-TL",
+                ContractorFullName = "Tomasz Lewandowski Magazyn Energii S.A.",
+                ContractorShortName = "TL Magazyn",
+                KRS = "0000567890",
+                NIP = "5678901234",
+                HeadquartersAddress = "ul. Magazynowa 30, 00-005 Wroclaw",
+                ContractorCode = "KON-005",
+                ContractorTypes = [ContractorType.Magazyn],
+                ContractNumber = "UP/2025/005",
+                ContractStartDate = new DateTime(2025, 4, 1),
+                ContractEndDate = new DateTime(2026, 3, 31)
             }
         ];
     }
