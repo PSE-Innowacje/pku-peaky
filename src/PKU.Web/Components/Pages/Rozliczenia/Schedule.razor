@@ -3,7 +3,9 @@
 @using PKU.Application.Interfaces
 @using PKU.Domain.Entities
 @using PKU.Domain.Enums
+@using System.Security.Claims
 @inject IScheduleService ScheduleService
+@inject AuthenticationStateProvider AuthenticationStateProvider
 @rendermode InteractiveServer
 
 <PageTitle>Terminarz rozliczen</PageTitle>
@@ -51,7 +53,27 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        _schedules = await ScheduleService.GetAllAsync();
+        var allSchedules = await ScheduleService.GetAllAsync();
+
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        var role = user.FindFirst(ClaimTypes.Role)?.Value;
+
+        if (role == UserRole.Administrator.ToString())
+        {
+            _schedules = allSchedules;
+        }
+        else
+        {
+            var contractorTypeClaim = user.FindFirst("ContractorType")?.Value;
+            var userContractorTypes = contractorTypeClaim?
+                .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                .Select(t => Enum.Parse<ContractorType>(t.Trim()))
+                .ToList() ?? [];
+
+            _schedules = allSchedules
+                .Where(s => userContractorTypes.Contains(s.ContractorType));
+        }
     }
 
     private static string FormatItem(PKU.Domain.Entities.Schedule schedule, ScheduleItemType itemType)
