@@ -1,4 +1,4 @@
-﻿@inherits LayoutComponentBase
+@inherits LayoutComponentBase
 
 <div class="page">
     <div class="sidebar">
@@ -7,7 +7,20 @@
 
     <main>
         <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
+            <AuthorizeView>
+                <Authorized>
+                    <span class="me-3">@context.User.Identity?.Name</span>
+                    <span class="badge bg-info me-3">@context.User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value</span>
+                    @{
+                        var contractorType = context.User.FindFirst("ContractorType")?.Value;
+                    }
+                    @if (contractorType is not null && contractorType != "None")
+                    {
+                        <span class="badge bg-secondary me-3">@contractorType</span>
+                    }
+                    <a href="account/logout" class="btn btn-outline-danger btn-sm">Wyloguj</a>
+                </Authorized>
+            </AuthorizeView>
         </div>
 
         <article class="content px-4">

@@ -1,0 +1,57 @@
+@page "/login"
+@layout PKU.Web.Components.Layout.LoginLayout
+
+<PageTitle>Logowanie - PKU</PageTitle>
+
+<div class="row justify-content-center mt-5">
+    <div class="col-md-4">
+        <div class="card shadow">
+            <div class="card-body">
+                <h3 class="card-title text-center mb-4">PKU - Logowanie</h3>
+
+                @if (_hasError)
+                {
+                    <div class="alert alert-danger">
+                        Nieprawidlowy email lub haslo.
+                    </div>
+                }
+
+                <form method="post" action="account/login">
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" name="email" required />
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Haslo</label>
+                        <input type="password" class="form-control" id="password" name="password" required />
+                    </div>
+                    <AntiforgeryToken />
+                    <button type="submit" class="btn btn-primary w-100">Zaloguj sie</button>
+                </form>
+
+                <hr />
+                <div class="small text-muted">
+                    <strong>Konta testowe</strong> (haslo: admin123)<br />
+                    admin@pku.pl — Administrator<br />
+                    osdp@pku.pl — Kontrahent OSDp<br />
+                    osdn@pku.pl — Kontrahent OSDn<br />
+                    ok@pku.pl — Kontrahent OK<br />
+                    wyt@pku.pl — Kontrahent Wyt<br />
+                    mag@pku.pl — Kontrahent Mag
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [SupplyParameterFromQuery(Name = "error")]
+    public string? Error { get; set; }
+
+    private bool _hasError;
+
+    protected override void OnInitialized()
+    {
+        _hasError = Error == "1";
+    }
+}

@@ -1,4 +1,5 @@
 @page "/rozliczenia/dashboard"
+@attribute [Authorize(Roles = "Kontrahent,Administrator")]
 @using PKU.Application.Interfaces
 @inject IDeclarationService DeclarationService
 @rendermode InteractiveServer

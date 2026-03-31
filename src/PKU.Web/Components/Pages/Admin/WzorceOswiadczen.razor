@@ -1,4 +1,5 @@
 @page "/admin/wzorce-oswiadczen"
+@attribute [Authorize(Roles = "Administrator")]
 @using PKU.Application.Interfaces
 @inject IDeclarationTemplateService TemplateService
 @rendermode InteractiveServer
