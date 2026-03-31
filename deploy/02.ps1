@@ -283,6 +283,170 @@ foreach ($user in $users) {
 
 Write-Host "Seedowanie zakonczone - dodano $($users.Count) uzytkownikow." -ForegroundColor Green
 
+# --- Utworzenie kolekcji 'declarations' ---
+$declCollectionName = "declarations"
+Write-Host "`n=== Tworzenie kolekcji '$declCollectionName' ===" -ForegroundColor Cyan
+
+$date = [DateTime]::UtcNow.ToString("R")
+$auth = Get-CosmosAuthHeader -Verb "POST" -ResourceType "colls" -ResourceLink $resourceLink -Date $date -Key $cosmosKey
+
+$headers = @{
+    "Authorization" = $auth
+    "x-ms-version"  = "2018-12-31"
+    "x-ms-date"     = $date
+    "Content-Type"  = "application/json"
+}
+
+$declCollBody = @{
+    id = $declCollectionName
+    partitionKey = @{
+        paths = @("/id")
+        kind = "Hash"
+    }
+} | ConvertTo-Json -Depth 3
+
+Invoke-RestMethod -Uri "$cosmosEndpoint/$resourceLink/colls" -Method Post -Headers $headers -Body $declCollBody | Out-Null
+Write-Host "Kolekcja '$declCollectionName' utworzona." -ForegroundColor Green
+
+# --- Seedowanie deklaracji ---
+Write-Host "`n=== Seedowanie deklaracji ===" -ForegroundColor Cyan
+
+# Enum values (odpowiadaja C# enum):
+# FeeType:           OP=0, OZE=1, OKO=2, OM=3, OZ=4, OJ=5, OR=6, ODO=7, OPPEB=8, OPMO=9
+# FeeCategory:       Pozaprzesylowa=0, Przesylowa=1
+# DeclarationStatus: NotSubmitted=0, Draft=1, Submitted=2
+# ContractorType:    OSDp=0, OSDn=1, Wytworca=2, Magazyn=3, OdbiorcaKoncowy=4
+
+$now = Get-Date
+$currentYear = $now.Year
+$currentMonth = $now.Month
+
+if ($currentMonth -eq 1) {
+    $prevMonth = 12
+    $prevYear = $currentYear - 1
+} else {
+    $prevMonth = $currentMonth - 1
+    $prevYear = $currentYear
+}
+
+$prevPeriodStart = Get-Date -Year $prevYear -Month $prevMonth -Day 1 -Hour 0 -Minute 0 -Second 0
+$currPeriodStart = Get-Date -Year $currentYear -Month $currentMonth -Day 1 -Hour 0 -Minute 0 -Second 0
+
+$declarations = @(
+    # === OSDp (user "2") - poprzedni miesiac: 2 zlozone ===
+    @{
+        id                = "seed-osdp-op-prev"
+        UserId            = "2"
+        ContractorType    = 0  # OSDp
+        FeeType           = 0  # OP
+        FeeCategory       = 0  # Pozaprzesylowa
+        BillingYear       = $prevYear
+        BillingMonth      = $prevMonth
+        DeclarationNumber = "OSW/OP/OSDp-JK/$prevYear/$("{0:D2}" -f $prevMonth)/01/01"
+        Status            = 2  # Submitted
+        SubmittedAt       = $prevPeriodStart.AddMonths(1).AddDays(4).ToUniversalTime().ToString("o")
+        CreatedAt         = $prevPeriodStart.AddMonths(1).AddDays(4).ToUniversalTime().ToString("o")
+        Deadline          = $prevPeriodStart.AddMonths(1).AddDays(9).ToUniversalTime().ToString("o")
+    },
+    @{
+        id                = "seed-osdp-oze-prev"
+        UserId            = "2"
+        ContractorType    = 0  # OSDp
+        FeeType           = 1  # OZE
+        FeeCategory       = 0  # Pozaprzesylowa
+        BillingYear       = $prevYear
+        BillingMonth      = $prevMonth
+        DeclarationNumber = "OSW/OZE/OSDp-JK/$prevYear/$("{0:D2}" -f $prevMonth)/01/01"
+        Status            = 2  # Submitted
+        SubmittedAt       = $prevPeriodStart.AddMonths(1).AddDays(5).ToUniversalTime().ToString("o")
+        CreatedAt         = $prevPeriodStart.AddMonths(1).AddDays(5).ToUniversalTime().ToString("o")
+        Deadline          = $prevPeriodStart.AddMonths(1).AddDays(9).ToUniversalTime().ToString("o")
+    },
+
+    # === OSDp - biezacy miesiac: 1 robocze (OKO), 1 zlozone (OP) ===
+    @{
+        id                = "seed-osdp-oko-curr"
+        UserId            = "2"
+        ContractorType    = 0  # OSDp
+        FeeType           = 2  # OKO
+        FeeCategory       = 0  # Pozaprzesylowa
+        BillingYear       = $currentYear
+        BillingMonth      = $currentMonth
+        DeclarationNumber = ""
+        Status            = 1  # Draft
+        SubmittedAt       = $null
+        CreatedAt         = (Get-Date).ToUniversalTime().ToString("o")
+        Deadline          = $currPeriodStart.AddMonths(1).AddDays(9).ToUniversalTime().ToString("o")
+    },
+    @{
+        id                = "seed-osdp-op-curr"
+        UserId            = "2"
+        ContractorType    = 0  # OSDp
+        FeeType           = 0  # OP
+        FeeCategory       = 0  # Pozaprzesylowa
+        BillingYear       = $currentYear
+        BillingMonth      = $currentMonth
+        DeclarationNumber = "OSW/OP/OSDp-JK/$currentYear/$("{0:D2}" -f $currentMonth)/01/01"
+        Status            = 2  # Submitted
+        SubmittedAt       = (Get-Date).AddDays(-2).ToUniversalTime().ToString("o")
+        CreatedAt         = (Get-Date).AddDays(-2).ToUniversalTime().ToString("o")
+        Deadline          = $currPeriodStart.AddMonths(1).AddDays(9).ToUniversalTime().ToString("o")
+    },
+
+    # === OSDn (user "3") - poprzedni miesiac: 1 zlozone ===
+    @{
+        id                = "seed-osdn-oze-prev"
+        UserId            = "3"
+        ContractorType    = 1  # OSDn
+        FeeType           = 1  # OZE
+        FeeCategory       = 0  # Pozaprzesylowa
+        BillingYear       = $prevYear
+        BillingMonth      = $prevMonth
+        DeclarationNumber = "OSW/OZE/OSDn-AN/$prevYear/$("{0:D2}" -f $prevMonth)/01/01"
+        Status            = 2  # Submitted
+        SubmittedAt       = $prevPeriodStart.AddMonths(1).AddDays(3).ToUniversalTime().ToString("o")
+        CreatedAt         = $prevPeriodStart.AddMonths(1).AddDays(3).ToUniversalTime().ToString("o")
+        Deadline          = $prevPeriodStart.AddMonths(1).AddDays(9).ToUniversalTime().ToString("o")
+    },
+
+    # === Wytworca (user "5") - biezacy miesiac: 1 zlozone ===
+    @{
+        id                = "seed-wyt-om-curr"
+        UserId            = "5"
+        ContractorType    = 2  # Wytworca
+        FeeType           = 3  # OM
+        FeeCategory       = 0  # Pozaprzesylowa
+        BillingYear       = $currentYear
+        BillingMonth      = $currentMonth
+        DeclarationNumber = "OSW/OM/WYT-MZ/$currentYear/$("{0:D2}" -f $currentMonth)/01/01"
+        Status            = 2  # Submitted
+        SubmittedAt       = (Get-Date).AddDays(-1).ToUniversalTime().ToString("o")
+        CreatedAt         = (Get-Date).AddDays(-1).ToUniversalTime().ToString("o")
+        Deadline          = $currPeriodStart.AddMonths(1).AddDays(9).ToUniversalTime().ToString("o")
+    }
+)
+
+$declDocsResourceLink = "dbs/$databaseName/colls/$declCollectionName"
+
+foreach ($decl in $declarations) {
+    $date = [DateTime]::UtcNow.ToString("R")
+    $auth = Get-CosmosAuthHeader -Verb "POST" -ResourceType "docs" -ResourceLink $declDocsResourceLink -Date $date -Key $cosmosKey
+
+    $headers = @{
+        "Authorization"                = $auth
+        "x-ms-version"                 = "2018-12-31"
+        "x-ms-date"                    = $date
+        "Content-Type"                 = "application/json"
+        "x-ms-documentdb-partitionkey" = "[`"$($decl.id)`"]"
+    }
+
+    $jsonBody = $decl | ConvertTo-Json -Depth 3
+    Invoke-RestMethod -Uri "$cosmosEndpoint/$declDocsResourceLink/docs" -Method Post -Headers $headers -Body ([System.Text.Encoding]::UTF8.GetBytes($jsonBody)) | Out-Null
+    Write-Host "  Dodano deklaracje: $($decl.id) (FeeType=$($decl.FeeType), Status=$($decl.Status))" -ForegroundColor Gray
+}
+
+Write-Host "Seedowanie zakonczone - dodano $($declarations.Count) deklaracji." -ForegroundColor Green
+
 # --- Podsumowanie ---
 Write-Host "`n=== Gotowe ===" -ForegroundColor Green
-Write-Host "Baza danych '$databaseName' z kolekcja '$collectionName' jest gotowa na: $cosmosEndpoint" -ForegroundColor Gray
+Write-Host "Baza danych '$databaseName' z kolekcjami '$collectionName' i '$declCollectionName' jest gotowa na: $cosmosEndpoint" -ForegroundColor Gray
