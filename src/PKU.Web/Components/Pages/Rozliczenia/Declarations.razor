@@ -1,0 +1,277 @@
+@page "/rozliczenia/declarations"
+@attribute [Authorize(Roles = "Kontrahent,Administrator")]
+@using System.Security.Claims
+@using PKU.Application.Interfaces
+@using PKU.Domain.Entities
+@using PKU.Domain.Enums
+@using PKU.Domain.Services
+@inject IDeclarationService DeclarationService
+@inject IUserService UserService
+@inject AuthenticationStateProvider AuthStateProvider
+@rendermode InteractiveServer
+
+<PageTitle>Oswiadczenia rozliczeniowe</PageTitle>
+
+<h3 class="mb-3">Oswiadczenia rozliczeniowe</h3>
+
+@if (_user is not null && _user.Role == UserRole.Kontrahent)
+{
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <strong>Kontrahent:</strong> @_user.Name
+                </div>
+                <div class="col-md-6">
+                    <strong>Typ:</strong> @_user.ContractorType
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<div class="row mb-3 align-items-end">
+    <div class="col-auto">
+        <label class="form-label fw-bold">Rok</label>
+        <select class="form-select" @bind="_selectedYear" @bind:after="LoadDeclarationsAsync">
+            @for (int y = DateTime.Now.Year - 1; y <= DateTime.Now.Year + 1; y++)
+            {
+                <option value="@y">@y</option>
+            }
+        </select>
+    </div>
+    <div class="col-auto">
+        <label class="form-label fw-bold">Miesiac</label>
+        <select class="form-select" @bind="_selectedMonth" @bind:after="LoadDeclarationsAsync">
+            @for (int m = 1; m <= 12; m++)
+            {
+                <option value="@m">@GetMonthName(m)</option>
+            }
+        </select>
+    </div>
+    <div class="col-auto">
+        <label class="form-label fw-bold">Pokaz</label>
+        <select class="form-select" @bind="_filter" @bind:after="ApplyFilter">
+            <option value="all">Wszystkie</option>
+            <option value="not_submitted">Nie zlozone</option>
+            <option value="submitted">Zlozone</option>
+        </select>
+    </div>
+</div>
+
+<p class="text-muted">
+    Okres rozliczeniowy: <strong>@GetMonthName(_selectedMonth) @_selectedYear</strong>
+</p>
+
+@if (_loading)
+{
+    <div class="d-flex justify-content-center my-5">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Ladowanie...</span>
+        </div>
+    </div>
+}
+else if (_filteredDeclarations is not null && _filteredDeclarations.Any())
+{
+    var nieZlozone = _filteredDeclarations.Where(d => d.Status == DeclarationStatus.NotSubmitted || d.Status == DeclarationStatus.Draft).ToList();
+    var zlozone = _filteredDeclarations.Where(d => d.Status == DeclarationStatus.Submitted).ToList();
+
+    @if (nieZlozone.Any() && _filter != "submitted")
+    {
+        <h5 class="mt-4 text-danger">
+            <span class="me-2">&#9744;</span>Okresy, dla ktorych nie zlozono oswiadczenia (@nieZlozone.Count)
+        </h5>
+        <table class="table table-striped table-hover">
+            <thead class="table-light">
+                <tr>
+                    <th>Akcja</th>
+                    <th>Typ oplaty</th>
+                    <th>Kategoria</th>
+                    <th>Typ kontrahenta</th>
+                    <th>Okres od</th>
+                    <th>Okres do</th>
+                    <th>Status</th>
+                    <th>Termin zlozenia</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var d in nieZlozone)
+                {
+                    <tr>
+                        <td>
+                            <button class="btn btn-sm btn-primary">Zloz oswiadczenie</button>
+                        </td>
+                        <td>
+                            <span class="badge bg-info text-dark">@d.FeeType</span>
+                            <br /><small class="text-muted">@ContractorFeeMapping.GetFeeTypeName(d.FeeType)</small>
+                        </td>
+                        <td>@ContractorFeeMapping.GetFeeCategoryName(d.FeeCategory)</td>
+                        <td>@d.ContractorType</td>
+                        <td>@(new DateTime(d.BillingYear, d.BillingMonth, 1).ToString("yyyy-MM-dd"))</td>
+                        <td>@(new DateTime(d.BillingYear, d.BillingMonth, 1).AddMonths(1).AddDays(-1).ToString("yyyy-MM-dd"))</td>
+                        <td>
+                            <span class="badge @GetStatusBadgeClass(d.Status)">
+                                @GetStatusName(d.Status)
+                            </span>
+                        </td>
+                        <td>
+                            @if (d.Deadline.HasValue)
+                            {
+                                var isOverdue = d.Deadline.Value < DateTime.Now;
+                                <span class="@(isOverdue ? "text-danger fw-bold" : "")">
+                                    @d.Deadline.Value.ToString("yyyy-MM-dd")
+                                    @if (isOverdue)
+                                    {
+                                        <span class="ms-1">(po terminie)</span>
+                                    }
+                                </span>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+
+    @if (zlozone.Any() && _filter != "not_submitted")
+    {
+        <h5 class="mt-4 text-success">
+            <span class="me-2">&#128228;</span>Okresy, dla ktorych zlozono oswiadczenie (@zlozone.Count)
+        </h5>
+        <table class="table table-striped table-hover">
+            <thead class="table-light">
+                <tr>
+                    <th>Typ oplaty</th>
+                    <th>Kategoria</th>
+                    <th>Typ kontrahenta</th>
+                    <th>Nr oswiadczenia</th>
+                    <th>Okres od</th>
+                    <th>Okres do</th>
+                    <th>Status</th>
+                    <th>Data zlozenia</th>
+                    <th>Akcje</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var d in zlozone)
+                {
+                    <tr>
+                        <td>
+                            <span class="badge bg-info text-dark">@d.FeeType</span>
+                            <br /><small class="text-muted">@ContractorFeeMapping.GetFeeTypeName(d.FeeType)</small>
+                        </td>
+                        <td>@ContractorFeeMapping.GetFeeCategoryName(d.FeeCategory)</td>
+                        <td>@d.ContractorType</td>
+                        <td>@d.DeclarationNumber</td>
+                        <td>@(new DateTime(d.BillingYear, d.BillingMonth, 1).ToString("yyyy-MM-dd"))</td>
+                        <td>@(new DateTime(d.BillingYear, d.BillingMonth, 1).AddMonths(1).AddDays(-1).ToString("yyyy-MM-dd"))</td>
+                        <td>
+                            <span class="badge @GetStatusBadgeClass(d.Status)">
+                                @GetStatusName(d.Status)
+                            </span>
+                        </td>
+                        <td>@d.SubmittedAt?.ToString("yyyy-MM-dd HH:mm")</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary">Podglad</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+}
+else
+{
+    <div class="alert alert-info mt-3">
+        Brak oswiadczen do wyswietlenia dla wybranego okresu.
+    </div>
+}
+
+@code {
+    private User? _user;
+    private IEnumerable<Declaration>? _allDeclarations;
+    private IEnumerable<Declaration>? _filteredDeclarations;
+    private int _selectedYear = DateTime.Now.Year;
+    private int _selectedMonth = DateTime.Now.Month;
+    private string _filter = "all";
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var userId = authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (userId is not null)
+        {
+            _user = await UserService.GetByIdAsync(userId);
+            await LoadDeclarationsAsync();
+        }
+
+        _loading = false;
+    }
+
+    private async Task LoadDeclarationsAsync()
+    {
+        if (_user is null) return;
+
+        _loading = true;
+
+        if (_user.Role == UserRole.Kontrahent)
+        {
+            _allDeclarations = await DeclarationService.GetForContractorMonthAsync(
+                _user.Id, _selectedYear, _selectedMonth);
+        }
+        else
+        {
+            // Administrator sees all
+            var all = await DeclarationService.GetAllAsync();
+            _allDeclarations = all.Where(d => d.BillingYear == _selectedYear && d.BillingMonth == _selectedMonth);
+        }
+
+        ApplyFilter();
+        _loading = false;
+    }
+
+    private void ApplyFilter()
+    {
+        _filteredDeclarations = _filter switch
+        {
+            "not_submitted" => _allDeclarations?.Where(d => d.Status != DeclarationStatus.Submitted),
+            "submitted" => _allDeclarations?.Where(d => d.Status == DeclarationStatus.Submitted),
+            _ => _allDeclarations
+        };
+    }
+
+    private static string GetStatusBadgeClass(DeclarationStatus status) => status switch
+    {
+        DeclarationStatus.NotSubmitted => "bg-secondary",
+        DeclarationStatus.Draft => "bg-warning text-dark",
+        DeclarationStatus.Submitted => "bg-success",
+        _ => "bg-secondary"
+    };
+
+    private static string GetStatusName(DeclarationStatus status) => status switch
+    {
+        DeclarationStatus.NotSubmitted => "Nie zlozone",
+        DeclarationStatus.Draft => "Robocze",
+        DeclarationStatus.Submitted => "Zlozone",
+        _ => status.ToString()
+    };
+
+    private static string GetMonthName(int month) => month switch
+    {
+        1 => "Styczen",
+        2 => "Luty",
+        3 => "Marzec",
+        4 => "Kwiecien",
+        5 => "Maj",
+        6 => "Czerwiec",
+        7 => "Lipiec",
+        8 => "Sierpien",
+        9 => "Wrzesien",
+        10 => "Pazdziernik",
+        11 => "Listopad",
+        12 => "Grudzien",
+        _ => month.ToString()
+    };
+}

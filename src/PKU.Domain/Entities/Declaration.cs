@@ -1,11 +1,26 @@
+using PKU.Domain.Enums;
+
 namespace PKU.Domain.Entities;
 
 public class Declaration
 {
     public string Id { get; set; } = Guid.NewGuid().ToString();
-    public string TemplateId { get; set; } = string.Empty;
     public string UserId { get; set; } = string.Empty;
-    public DeclarationStatus Status { get; set; } = DeclarationStatus.Draft;
-    public DateTime SubmittedAt { get; set; }
+    public ContractorType ContractorType { get; set; }
+    public FeeType FeeType { get; set; }
+    public FeeCategory FeeCategory { get; set; }
+
+    // Billing period
+    public int BillingYear { get; set; }
+    public int BillingMonth { get; set; }
+
+    // Declaration number (generated)
+    public string DeclarationNumber { get; set; } = string.Empty;
+
+    public DeclarationStatus Status { get; set; } = DeclarationStatus.NotSubmitted;
+    public DateTime? SubmittedAt { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    // Schedule deadline
+    public DateTime? Deadline { get; set; }
 }
