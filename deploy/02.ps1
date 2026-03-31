@@ -447,6 +447,88 @@ foreach ($decl in $declarations) {
 
 Write-Host "Seedowanie zakonczone - dodano $($declarations.Count) deklaracji." -ForegroundColor Green
 
+# --- Utworzenie kolekcji 'schedules' ---
+$schedCollectionName = "schedules"
+Write-Host "`n=== Tworzenie kolekcji '$schedCollectionName' ===" -ForegroundColor Cyan
+
+$date = [DateTime]::UtcNow.ToString("R")
+$auth = Get-CosmosAuthHeader -Verb "POST" -ResourceType "colls" -ResourceLink $resourceLink -Date $date -Key $cosmosKey
+
+$headers = @{
+    "Authorization" = $auth
+    "x-ms-version"  = "2018-12-31"
+    "x-ms-date"     = $date
+    "Content-Type"  = "application/json"
+}
+
+$schedCollBody = @{
+    id = $schedCollectionName
+    partitionKey = @{
+        paths = @("/id")
+        kind = "Hash"
+    }
+} | ConvertTo-Json -Depth 3
+
+Invoke-RestMethod -Uri "$cosmosEndpoint/$resourceLink/colls" -Method Post -Headers $headers -Body $schedCollBody | Out-Null
+Write-Host "Kolekcja '$schedCollectionName' utworzona." -ForegroundColor Green
+
+# --- Seedowanie terminarzy ---
+Write-Host "`n=== Seedowanie terminarzy ===" -ForegroundColor Cyan
+
+# Enum values (odpowiadaja C# enum):
+# FeeType:          OP=0, OZE=1, OKO=2, OM=3, OZ=4, OJ=5, OR=6, ODO=7, OPPEB=8, OPMO=9
+# ContractorType:   OSDp=0, OSDn=1, Wytworca=2, Magazyn=3, OdbiorcaKoncowy=4
+# ScheduleItemType: DeclarationSubmit=0, DeclarationInvoice=1, DeclarationCorrection=2, DeclarationCorrectionInvoice=3
+# DayType:          CalendarDay=0, BusinessDay=1
+
+$schedules = @(
+    @{
+        id             = "seed-schedule-op-osdp"
+        feeType        = 0  # OP
+        contractorType = 0  # OSDp
+        items          = @(
+            @{ itemType = 0; days = 10; dayType = 1 }  # DeclarationSubmit, BusinessDay
+            @{ itemType = 1; days = 15; dayType = 0 }  # DeclarationInvoice, CalendarDay
+            @{ itemType = 2; days = 20; dayType = 1 }  # DeclarationCorrection, BusinessDay
+            @{ itemType = 3; days = 25; dayType = 0 }  # DeclarationCorrectionInvoice, CalendarDay
+        )
+        isActive       = $true
+    },
+    @{
+        id             = "seed-schedule-oze-wytworca"
+        feeType        = 1  # OZE
+        contractorType = 2  # Wytworca
+        items          = @(
+            @{ itemType = 0; days = 7;  dayType = 0 }  # DeclarationSubmit, CalendarDay
+            @{ itemType = 1; days = 12; dayType = 0 }  # DeclarationInvoice, CalendarDay
+            @{ itemType = 2; days = 17; dayType = 1 }  # DeclarationCorrection, BusinessDay
+            @{ itemType = 3; days = 22; dayType = 0 }  # DeclarationCorrectionInvoice, CalendarDay
+        )
+        isActive       = $true
+    }
+)
+
+$schedDocsResourceLink = "dbs/$databaseName/colls/$schedCollectionName"
+
+foreach ($sched in $schedules) {
+    $date = [DateTime]::UtcNow.ToString("R")
+    $auth = Get-CosmosAuthHeader -Verb "POST" -ResourceType "docs" -ResourceLink $schedDocsResourceLink -Date $date -Key $cosmosKey
+
+    $headers = @{
+        "Authorization"                = $auth
+        "x-ms-version"                 = "2018-12-31"
+        "x-ms-date"                    = $date
+        "Content-Type"                 = "application/json"
+        "x-ms-documentdb-partitionkey" = "[`"$($sched.id)`"]"
+    }
+
+    $jsonBody = $sched | ConvertTo-Json -Depth 3
+    Invoke-RestMethod -Uri "$cosmosEndpoint/$schedDocsResourceLink/docs" -Method Post -Headers $headers -Body ([System.Text.Encoding]::UTF8.GetBytes($jsonBody)) | Out-Null
+    Write-Host "  Dodano terminarz: $($sched.id) (FeeType=$($sched.feeType), ContractorType=$($sched.contractorType))" -ForegroundColor Gray
+}
+
+Write-Host "Seedowanie zakonczone - dodano $($schedules.Count) terminarzy." -ForegroundColor Green
+
 # --- Podsumowanie ---
 Write-Host "`n=== Gotowe ===" -ForegroundColor Green
-Write-Host "Baza danych '$databaseName' z kolekcjami '$collectionName' i '$declCollectionName' jest gotowa na: $cosmosEndpoint" -ForegroundColor Gray
+Write-Host "Baza danych '$databaseName' z kolekcjami '$collectionName', '$declCollectionName' i '$schedCollectionName' jest gotowa na: $cosmosEndpoint" -ForegroundColor Gray

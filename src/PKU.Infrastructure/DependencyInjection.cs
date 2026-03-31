@@ -35,7 +35,7 @@ public static class DependencyInjection
 
         services.AddSingleton<IUserService, CosmosUserService>();
         services.AddSingleton<IDeclarationTemplateService, InMemoryDeclarationTemplateService>();
-        services.AddSingleton<IScheduleService, InMemoryScheduleService>();
+        services.AddSingleton<IScheduleService, CosmosScheduleService>();
         services.AddSingleton<IDeclarationService, InMemoryDeclarationService>();
         services.AddScoped<IAuthService, AuthService>();
         return services;
