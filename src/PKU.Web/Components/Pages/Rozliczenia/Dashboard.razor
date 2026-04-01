@@ -23,22 +23,23 @@
     }
     <div class="d-flex align-items-center gap-3 mt-2">
         <label class="text-muted mb-0">Okres:</label>
-        <select class="form-select form-select-sm" style="width: auto;" @onchange="OnMonthChanged" value="@_selectedMonth">
-            @for (int m = 1; m <= 12; m++)
-            {
-                <option value="@m">@GetMonthName(m)</option>
-            }
-        </select>
         <select class="form-select form-select-sm" style="width: auto;" @onchange="OnYearChanged" value="@_selectedYear">
             @for (int y = DateTime.Now.Year; y >= DateTime.Now.Year - 5; y--)
             {
                 <option value="@y">@y</option>
             }
         </select>
+        <select class="form-select form-select-sm" style="width: auto;" @onchange="OnMonthChanged" value="@_selectedMonth">
+            <option value="0">Wszystkie</option>
+            @for (int m = 1; m <= 12; m++)
+            {
+                <option value="@m">@GetMonthName(m)</option>
+            }
+        </select>
     </div>
 </div>
 
-@if (_totalCount == 0 && _user is not null && _user.Role == UserRole.Kontrahent)
+@if (_totalCount == 0 && _user is not null && _user.Role == UserRole.Kontrahent && _selectedMonth > 0)
 {
     <div class="alert alert-warning d-flex align-items-center">
         <span class="me-2" style="font-size:1.5rem;">&#9888;</span>
@@ -354,7 +355,7 @@
     private User? _user;
     private List<Declaration> _declarations = new();
     private int _selectedYear = DateTime.Now.Year;
-    private int _selectedMonth = DateTime.Now.Month;
+    private int _selectedMonth; // 0 = all months
     private int _totalCount;
     private int _nieZlozoneCount;
     private int _zlozoneCount;
@@ -391,7 +392,9 @@
 
         if (_user.Role == UserRole.Kontrahent)
         {
-            declarations = await DeclarationService.GetForContractorMonthAsync(_user.Id, _selectedYear, _selectedMonth);
+            declarations = _selectedMonth == 0
+                ? await DeclarationService.GetForContractorYearAsync(_user.Id, _selectedYear)
+                : await DeclarationService.GetForContractorMonthAsync(_user.Id, _selectedYear, _selectedMonth);
         }
         else
         {
