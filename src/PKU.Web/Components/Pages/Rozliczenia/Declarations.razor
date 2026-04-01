@@ -104,6 +104,7 @@ else if (_filteredDeclarations is not null && _filteredDeclarations.Any())
                     <th>Typ oplaty</th>
                     <th>Kategoria</th>
                     <th>Typ kontrahenta</th>
+                    <th>Nr korekty</th>
                     <th>Okres od</th>
                     <th>Okres do</th>
                     <th>Status</th>
@@ -123,6 +124,16 @@ else if (_filteredDeclarations is not null && _filteredDeclarations.Any())
                         </td>
                         <td>@ContractorFeeMapping.GetFeeCategoryName(d.FeeCategory)</td>
                         <td>@d.ContractorType</td>
+                        <td>
+                            @if (d.CorrectionNumber > 0)
+                            {
+                                <span class="badge bg-primary">@d.CorrectionNumber</span>
+                            }
+                            else
+                            {
+                                <span class="text-muted">-</span>
+                            }
+                        </td>
                         <td>@(new DateTime(d.BillingYear, d.BillingMonth, 1).ToString("yyyy-MM-dd"))</td>
                         <td>@(new DateTime(d.BillingYear, d.BillingMonth, 1).AddMonths(1).AddDays(-1).ToString("yyyy-MM-dd"))</td>
                         <td>
