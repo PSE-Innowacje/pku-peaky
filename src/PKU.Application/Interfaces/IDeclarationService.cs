@@ -21,4 +21,9 @@ public interface IDeclarationService
     /// Creates missing declarations for a contractor for a given month/year and returns all declarations for that period.
     /// </summary>
     Task<IEnumerable<Declaration>> CreateMissingDeclarationsAsync(string userId, int year, int month);
+
+    /// <summary>
+    /// Serializes a declaration to JSON bytes for export.
+    /// </summary>
+    byte[] ExportToJson(Declaration declaration);
 }

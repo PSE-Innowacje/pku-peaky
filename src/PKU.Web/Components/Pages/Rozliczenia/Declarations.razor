@@ -9,6 +9,7 @@
 @inject IUserService UserService
 @inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager Navigation
+@inject IJSRuntime JS
 @using Microsoft.AspNetCore.Components.Forms
 @rendermode InteractiveServer
 
@@ -187,7 +188,12 @@ else if (_filteredDeclarations is not null && _filteredDeclarations.Any())
                         </td>
                         <td>@d.SubmittedAt?.ToString("yyyy-MM-dd HH:mm")</td>
                         <td>
-                            <button class="btn btn-sm btn-outline-primary" @onclick="() => GoToDeclaration(d.Id)">Podglad</button>
+                            <div class="btn-group">
+                                <button class="btn btn-sm btn-outline-primary" @onclick="() => GoToDeclaration(d.Id)">Podglad</button>
+                                <button class="btn btn-sm btn-outline-secondary" @onclick="() => ExportToJsonAsync(d)" disabled="@_exporting">
+                                    Eksportuj
+                                </button>
+                            </div>
                         </td>
                     </tr>
                 }
@@ -215,6 +221,7 @@ else
     private string _filter = "all";
     private bool _loading = true;
     private bool _generating;
+    private bool _exporting;
 
     [SupplyParameterFromQuery(Name = "year")]
     public int? QueryYear { get; set; }
@@ -335,6 +342,23 @@ else
     private void GoToDeclaration(string id)
     {
         Navigation.NavigateTo($"/rozliczenia/declarations/{id}");
+    }
+
+    private async Task ExportToJsonAsync(Declaration declaration)
+    {
+        _exporting = true;
+        try
+        {
+            var bytes = DeclarationService.ExportToJson(declaration);
+            var fileName = string.IsNullOrEmpty(declaration.DeclarationNumber)
+                ? $"oswiadczenie_{declaration.Id}.json"
+                : $"{declaration.DeclarationNumber.Replace("/", "_")}.json";
+            await JS.InvokeVoidAsync("downloadFile", fileName, "application/json", Convert.ToBase64String(bytes));
+        }
+        finally
+        {
+            _exporting = false;
+        }
     }
 
     private static string GetMonthName(int month) => month switch

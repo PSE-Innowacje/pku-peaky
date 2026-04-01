@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Microsoft.Azure.Cosmos;
 using PKU.Application.Interfaces;
 using PKU.Domain.Entities;
@@ -138,5 +139,16 @@ public class CosmosDeclarationService : IDeclarationService
         }
 
         return existing;
+    }
+
+    private static readonly JsonSerializerOptions ExportJsonOptions = new()
+    {
+        WriteIndented = true,
+        Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+    };
+
+    public byte[] ExportToJson(Declaration declaration)
+    {
+        return JsonSerializer.SerializeToUtf8Bytes(declaration, ExportJsonOptions);
     }
 }
