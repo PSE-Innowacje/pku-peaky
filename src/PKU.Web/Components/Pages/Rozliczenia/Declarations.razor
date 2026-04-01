@@ -9,6 +9,7 @@
 @inject IUserService UserService
 @inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager Navigation
+@using Microsoft.AspNetCore.Components.Forms
 @rendermode InteractiveServer
 
 <PageTitle>Oswiadczenia rozliczeniowe</PageTitle>
@@ -44,6 +45,7 @@
     <div class="col-auto">
         <label class="form-label fw-bold">Miesiac</label>
         <select class="form-select" @bind="_selectedMonth" @bind:after="LoadDeclarationsAsync">
+            <option value="0">Wszystkie</option>
             @for (int m = 1; m <= 12; m++)
             {
                 <option value="@m">@GetMonthName(m)</option>
@@ -61,7 +63,7 @@
 </div>
 
 <p class="text-muted">
-    Okres rozliczeniowy: <strong>@GetMonthName(_selectedMonth) @_selectedYear</strong>
+    Okres rozliczeniowy: <strong>@(_selectedMonth == 0 ? "Wszystkie miesiace" : GetMonthName(_selectedMonth)) @_selectedYear</strong>
 </p>
 
 @if (_loading)
@@ -197,8 +199,24 @@ else
     private string _filter = "all";
     private bool _loading = true;
 
+    [SupplyParameterFromQuery(Name = "year")]
+    public int? QueryYear { get; set; }
+
+    [SupplyParameterFromQuery(Name = "month")]
+    public int? QueryMonth { get; set; }
+
+    [SupplyParameterFromQuery(Name = "filter")]
+    public string? QueryFilter { get; set; }
+
     protected override async Task OnInitializedAsync()
     {
+        if (QueryYear.HasValue)
+            _selectedYear = QueryYear.Value;
+        if (QueryMonth.HasValue)
+            _selectedMonth = QueryMonth.Value;
+        if (!string.IsNullOrEmpty(QueryFilter))
+            _filter = QueryFilter;
+
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
         var userId = authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
@@ -219,14 +237,30 @@ else
 
         if (_user.Role == UserRole.Kontrahent)
         {
-            _allDeclarations = await DeclarationService.GetForContractorMonthAsync(
-                _user.Id, _selectedYear, _selectedMonth);
+            if (_selectedMonth == 0)
+            {
+                var results = new List<Declaration>();
+                for (int m = 1; m <= 12; m++)
+                {
+                    var monthly = await DeclarationService.GetForContractorMonthAsync(
+                        _user.Id, _selectedYear, m);
+                    results.AddRange(monthly);
+                }
+                _allDeclarations = results;
+            }
+            else
+            {
+                _allDeclarations = await DeclarationService.GetForContractorMonthAsync(
+                    _user.Id, _selectedYear, _selectedMonth);
+            }
         }
         else
         {
             // Administrator sees all
             var all = await DeclarationService.GetAllAsync();
-            _allDeclarations = all.Where(d => d.BillingYear == _selectedYear && d.BillingMonth == _selectedMonth);
+            _allDeclarations = _selectedMonth == 0
+                ? all.Where(d => d.BillingYear == _selectedYear)
+                : all.Where(d => d.BillingYear == _selectedYear && d.BillingMonth == _selectedMonth);
         }
 
         ApplyFilter();
