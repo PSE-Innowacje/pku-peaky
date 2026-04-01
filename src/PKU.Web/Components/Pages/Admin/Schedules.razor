@@ -1,22 +1,76 @@
 @page "/admin/schedules"
 @attribute [Authorize(Roles = "Administrator")]
-@using PKU.Application.Interfaces
 @using PKU.Domain.Entities
 @using PKU.Domain.Enums
-@inject IScheduleService ScheduleService
-@inject NavigationManager Navigation
 @rendermode InteractiveServer
 
 <PageTitle>Definiowanie terminarzy</PageTitle>
 
-<h3>Definiowanie terminarzy</h3>
-<p>Konfiguracja terminarzy rozliczen miesięcznych.</p>
-
-<div class="mb-3">
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h3 class="mb-0">Definiowanie terminarzy</h3>
     <button class="btn btn-primary" @onclick="AddSchedule">Dodaj terminarz</button>
 </div>
 
-@if (_schedules is not null && _schedules.Any())
+<div class="row mb-3 align-items-end">
+    <div class="col-auto">
+        <label class="form-label fw-bold">Typ oplaty</label>
+        <select class="form-select form-select-sm" @bind="_filterFeeType" @bind:after="ApplyFilter">
+            <option value="">Wszystkie</option>
+            @foreach (var ft in Enum.GetValues<FeeType>())
+            {
+                <option value="@ft">@ft</option>
+            }
+        </select>
+    </div>
+    <div class="col-auto">
+        <label class="form-label fw-bold">Typ kontrahenta</label>
+        <select class="form-select form-select-sm" @bind="_filterContractorType" @bind:after="ApplyFilter">
+            <option value="">Wszystkie</option>
+            @foreach (var ct in Enum.GetValues<ContractorType>())
+            {
+                <option value="@ct">@GetContractorTypeLabel(ct)</option>
+            }
+        </select>
+    </div>
+    <div class="col-auto">
+        <label class="form-label fw-bold">Skladanie osw. (dni)</label>
+        <div class="d-flex gap-1">
+            <input type="number" class="form-control form-control-sm" style="width:70px" placeholder="od" @bind="_filterSubmitMin" @bind:after="ApplyFilter" />
+            <input type="number" class="form-control form-control-sm" style="width:70px" placeholder="do" @bind="_filterSubmitMax" @bind:after="ApplyFilter" />
+        </div>
+    </div>
+    <div class="col-auto">
+        <label class="form-label fw-bold">Faktura (dni)</label>
+        <div class="d-flex gap-1">
+            <input type="number" class="form-control form-control-sm" style="width:70px" placeholder="od" @bind="_filterInvoiceMin" @bind:after="ApplyFilter" />
+            <input type="number" class="form-control form-control-sm" style="width:70px" placeholder="do" @bind="_filterInvoiceMax" @bind:after="ApplyFilter" />
+        </div>
+    </div>
+    <div class="col-auto">
+        <label class="form-label fw-bold">Korekta (dni)</label>
+        <div class="d-flex gap-1">
+            <input type="number" class="form-control form-control-sm" style="width:70px" placeholder="od" @bind="_filterCorrectionMin" @bind:after="ApplyFilter" />
+            <input type="number" class="form-control form-control-sm" style="width:70px" placeholder="do" @bind="_filterCorrectionMax" @bind:after="ApplyFilter" />
+        </div>
+    </div>
+    <div class="col-auto">
+        <label class="form-label fw-bold">Fakt. po kor. (dni)</label>
+        <div class="d-flex gap-1">
+            <input type="number" class="form-control form-control-sm" style="width:70px" placeholder="od" @bind="_filterCorrInvoiceMin" @bind:after="ApplyFilter" />
+            <input type="number" class="form-control form-control-sm" style="width:70px" placeholder="do" @bind="_filterCorrInvoiceMax" @bind:after="ApplyFilter" />
+        </div>
+    </div>
+    <div class="col-auto">
+        <label class="form-label fw-bold">Aktywny</label>
+        <select class="form-select form-select-sm" @bind="_filterActive" @bind:after="ApplyFilter">
+            <option value="">Wszystkie</option>
+            <option value="true">Tak</option>
+            <option value="false">Nie</option>
+        </select>
+    </div>
+</div>
+
+@if (_filtered is not null && _filtered.Any())
 {
     <table class="table table-striped">
         <thead>
@@ -32,7 +86,7 @@
             </tr>
         </thead>
         <tbody>
-            @foreach (var schedule in _schedules)
+            @foreach (var schedule in _filtered)
             {
                 <tr>
                     <td>@schedule.FeeType</td>
@@ -53,7 +107,7 @@
 }
 else
 {
-    <div class="alert alert-info">Brak zdefiniowanych terminarzy.</div>
+    <div class="alert alert-info">Brak terminarzy dla wybranych filtrow.</div>
 }
 
 @if (_confirmDeleteId is not null)
@@ -62,7 +116,7 @@ else
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Potwierdzenie usunięcia</h5>
+                    <h5 class="modal-title">Potwierdzenie usuniecia</h5>
                 </div>
                 <div class="modal-body">
                     <p>Czy na pewno chcesz usunac ten terminarz?</p>
@@ -74,62 +128,4 @@ else
             </div>
         </div>
     </div>
-}
-
-@code {
-    private IEnumerable<Schedule>? _schedules;
-    private string? _confirmDeleteId;
-
-    protected override async Task OnInitializedAsync()
-    {
-        _schedules = await ScheduleService.GetAllAsync();
-    }
-
-    private void AddSchedule()
-    {
-        Navigation.NavigateTo("/admin/schedules/new");
-    }
-
-    private void EditSchedule(string id)
-    {
-        Navigation.NavigateTo($"/admin/schedules/{id}");
-    }
-
-    private void DeleteSchedule(string id)
-    {
-        _confirmDeleteId = id;
-    }
-
-    private void CancelDelete()
-    {
-        _confirmDeleteId = null;
-    }
-
-    private async Task ConfirmDelete()
-    {
-        if (_confirmDeleteId is not null)
-        {
-            await ScheduleService.DeleteAsync(_confirmDeleteId);
-            _confirmDeleteId = null;
-            _schedules = await ScheduleService.GetAllAsync();
-        }
-    }
-
-    private static string FormatItem(Schedule schedule, ScheduleItemType itemType)
-    {
-        var item = schedule.Items.FirstOrDefault(i => i.ItemType == itemType);
-        if (item is null) return "-";
-        var dayLabel = item.DayType == DayType.CalendarDay ? "kal." : "rob.";
-        return $"{item.Days} dni {dayLabel}";
-    }
-
-    private static string GetContractorTypeLabel(ContractorType type) => type switch
-    {
-        ContractorType.OSDp => "OSDp",
-        ContractorType.OSDn => "OSDn",
-        ContractorType.Wytworca => "Wytworca",
-        ContractorType.Magazyn => "Magazyn",
-        ContractorType.OdbiorcaKoncowy => "Odbiorca Koncowy",
-        _ => type.ToString()
-    };
 }
