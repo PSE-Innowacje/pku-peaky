@@ -29,4 +29,8 @@ public class Declaration
 
     // Optional comment from contractor
     public string? Comment { get; set; }
+
+    // Correction tracking
+    public int CorrectionNumber { get; set; } = 0;
+    public string? OriginalDeclarationId { get; set; }
 }
