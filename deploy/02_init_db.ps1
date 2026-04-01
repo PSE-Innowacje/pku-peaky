@@ -560,95 +560,95 @@ Write-Host "`n=== Seedowanie wzorcow oswiadczen ===" -ForegroundColor Cyan
 $templates = @(
     @{
         id              = "tpl-op-osdp-osdn"
-        Name            = "Oplata przejsciowa - OSDp / OSDn"
-        Description     = "Wzorzec oswiadczenia dla oplaty przejsciowej (OP) dla OSDp i OSDn"
-        FeeType         = 0  # OP
+        name            = "Oplata przejsciowa - OSDp / OSDn"
+        description     = "Wzorzec oswiadczenia dla oplaty przejsciowej (OP) dla OSDp i OSDn"
+        feeType         = 0  # OP
         contractorTypes = @(0, 1)  # OSDp, OSDn
-        AllowComment    = $true
-        IsActive        = $true
-        CreatedAt       = (Get-Date).ToUniversalTime().ToString("o")
-        Fields          = @(
-            @{ Number = "1";   Code = "IGDSUM"; Name = "Liczba odbiorcow koncowych w gospodarstwach domowych (suma 1.1-1.3)"; DataType = "Number"; IsRequired = $true; Unit = "szt" }
-            @{ Number = "1.1"; Code = "IGD1i";  Name = "Zuzywajacy < 500 kWh rocznie"; DataType = "Number"; IsRequired = $true; Unit = "szt" }
-            @{ Number = "1.2"; Code = "IGD2i";  Name = "Zuzywajacy 500-1200 kWh rocznie"; DataType = "Number"; IsRequired = $true; Unit = "szt" }
-            @{ Number = "1.3"; Code = "IGD3i";  Name = "Zuzywajacy > 1200 kWh rocznie"; DataType = "Number"; IsRequired = $true; Unit = "szt" }
-            @{ Number = "2";   Code = "OPSUM";  Name = "Suma mocy umownych odbiorcow koncowych (suma 2.1-2.4)"; DataType = "Number (9,3)"; IsRequired = $true; Unit = "kW" }
-            @{ Number = "2.1"; Code = "PnNi";   Name = "Przylaczeni do sieci nN kontrahenta"; DataType = "Number (9,3)"; IsRequired = $true; Unit = "kW" }
-            @{ Number = "2.2"; Code = "PSNi";   Name = "Przylaczeni do sieci SN kontrahenta"; DataType = "Number (9,3)"; IsRequired = $true; Unit = "kW" }
-            @{ Number = "2.3"; Code = "PWN";    Name = "Przylaczeni do sieci WN/NN kontrahenta"; DataType = "Number (9,3)"; IsRequired = $true; Unit = "kW" }
-            @{ Number = "2.4"; Code = "Posi";   Name = "Odbiorcy >= 400 GWh, >= 60% mocy umownej, koszt EE >= 15% produkcji"; DataType = "Number (9,3)"; IsRequired = $true; Unit = "kW" }
+        allowComment    = $true
+        isActive        = $true
+        createdAt       = (Get-Date).ToUniversalTime().ToString("o")
+        fields          = @(
+            @{ number = "1";   code = "IGDSUM"; name = "Liczba odbiorcow koncowych w gospodarstwach domowych (suma 1.1-1.3)"; dataType = "Number"; isRequired = $true; unit = "szt" }
+            @{ number = "1.1"; code = "IGD1i";  name = "Zuzywajacy < 500 kWh rocznie"; dataType = "Number"; isRequired = $true; unit = "szt" }
+            @{ number = "1.2"; code = "IGD2i";  name = "Zuzywajacy 500-1200 kWh rocznie"; dataType = "Number"; isRequired = $true; unit = "szt" }
+            @{ number = "1.3"; code = "IGD3i";  name = "Zuzywajacy > 1200 kWh rocznie"; dataType = "Number"; isRequired = $true; unit = "szt" }
+            @{ number = "2";   code = "OPSUM";  name = "Suma mocy umownych odbiorcow koncowych (suma 2.1-2.4)"; dataType = "Number (9,3)"; isRequired = $true; unit = "kW" }
+            @{ number = "2.1"; code = "PnNi";   name = "Przylaczeni do sieci nN kontrahenta"; dataType = "Number (9,3)"; isRequired = $true; unit = "kW" }
+            @{ number = "2.2"; code = "PSNi";   name = "Przylaczeni do sieci SN kontrahenta"; dataType = "Number (9,3)"; isRequired = $true; unit = "kW" }
+            @{ number = "2.3"; code = "PWN";    name = "Przylaczeni do sieci WN/NN kontrahenta"; dataType = "Number (9,3)"; isRequired = $true; unit = "kW" }
+            @{ number = "2.4"; code = "Posi";   name = "Odbiorcy >= 400 GWh, >= 60% mocy umownej, koszt EE >= 15% produkcji"; dataType = "Number (9,3)"; isRequired = $true; unit = "kW" }
         )
     },
     @{
         id              = "tpl-oze-osd"
-        Name            = "Oplata OZE - OSDp / OSDn"
-        Description     = "Wzorzec oswiadczenia dla oplaty OZE dla OSDp i OSDn"
-        FeeType         = 1  # OZE
+        name            = "Oplata OZE - OSDp / OSDn"
+        description     = "Wzorzec oswiadczenia dla oplaty OZE dla OSDp i OSDn"
+        feeType         = 1  # OZE
         contractorTypes = @(0, 1)
-        AllowComment    = $true
-        IsActive        = $true
-        CreatedAt       = (Get-Date).ToUniversalTime().ToString("o")
-        Fields          = @(
-            @{ Number = "1";   Code = "OZESUM"; Name = "Wielkosc srodkow z tytulu oplaty OZE (1.1 - 1.2)"; DataType = "Number (12,2)"; IsRequired = $true; Unit = "zl" }
-            @{ Number = "1.1"; Code = "OZEN";   Name = "Wielkosc naleznych srodkow z tytulu oplaty OZE"; DataType = "Number (12,2)"; IsRequired = $true; Unit = "zl" }
-            @{ Number = "1.2"; Code = "OZEPN";  Name = "Wierzytelnosci niesciagalne z poprzednich okresow"; DataType = "Number (12,2)"; IsRequired = $true; Unit = "zl" }
-            @{ Number = "2";   Code = "OZEE";   Name = "Ilosc energii - podstawa naliczania oplaty OZE"; DataType = "Number (9,3)"; IsRequired = $true; Unit = "MWh" }
+        allowComment    = $true
+        isActive        = $true
+        createdAt       = (Get-Date).ToUniversalTime().ToString("o")
+        fields          = @(
+            @{ number = "1";   code = "OZESUM"; name = "Wielkosc srodkow z tytulu oplaty OZE (1.1 - 1.2)"; dataType = "Number (12,2)"; isRequired = $true; unit = "zl" }
+            @{ number = "1.1"; code = "OZEN";   name = "Wielkosc naleznych srodkow z tytulu oplaty OZE"; dataType = "Number (12,2)"; isRequired = $true; unit = "zl" }
+            @{ number = "1.2"; code = "OZEPN";  name = "Wierzytelnosci niesciagalne z poprzednich okresow"; dataType = "Number (12,2)"; isRequired = $true; unit = "zl" }
+            @{ number = "2";   code = "OZEE";   name = "Ilosc energii - podstawa naliczania oplaty OZE"; dataType = "Number (9,3)"; isRequired = $true; unit = "MWh" }
         )
     },
     @{
         id              = "tpl-oze-ok-mag"
-        Name            = "Oplata OZE - Odbiorcy koncowi / Magazyny"
-        Description     = "Wzorzec dla oplaty OZE dla OK i Magazynow"
-        FeeType         = 1
+        name            = "Oplata OZE - Odbiorcy koncowi / Magazyny"
+        description     = "Wzorzec dla oplaty OZE dla OK i Magazynow"
+        feeType         = 1
         contractorTypes = @(4, 3)
-        AllowComment    = $true
-        IsActive        = $true
-        CreatedAt       = (Get-Date).ToUniversalTime().ToString("o")
-        Fields          = @(
-            @{ Number = "1"; Code = "OZEil"; Name = "Ilosc energii - podstawa naliczania oplaty OZE"; DataType = "Number (9,3)"; IsRequired = $true; Unit = "MWh" }
+        allowComment    = $true
+        isActive        = $true
+        createdAt       = (Get-Date).ToUniversalTime().ToString("o")
+        fields          = @(
+            @{ number = "1"; code = "OZEil"; name = "Ilosc energii - podstawa naliczania oplaty OZE"; dataType = "Number (9,3)"; isRequired = $true; unit = "MWh" }
         )
     },
     @{
         id              = "tpl-oze-wyt"
-        Name            = "Oplata OZE - Wytworca"
-        Description     = "Wzorzec dla oplaty OZE dla wytworcow"
-        FeeType         = 1
+        name            = "Oplata OZE - Wytworca"
+        description     = "Wzorzec dla oplaty OZE dla wytworcow"
+        feeType         = 1
         contractorTypes = @(2)
-        AllowComment    = $true
-        IsActive        = $true
-        CreatedAt       = (Get-Date).ToUniversalTime().ToString("o")
-        Fields          = @(
-            @{ Number = "1"; Code = "OZEil"; Name = "Planowana ilosc energii - podstawa naliczania oplaty OZE"; DataType = "Number (9,3)"; IsRequired = $true; Unit = "MWh" }
+        allowComment    = $true
+        isActive        = $true
+        createdAt       = (Get-Date).ToUniversalTime().ToString("o")
+        fields          = @(
+            @{ number = "1"; code = "OZEil"; name = "Planowana ilosc energii - podstawa naliczania oplaty OZE"; dataType = "Number (9,3)"; isRequired = $true; unit = "MWh" }
         )
     },
     @{
         id              = "tpl-oko-osd"
-        Name            = "Oplata kogeneracyjna - OSDp / OSDn"
-        Description     = "Wzorzec dla oplaty kogeneracyjnej dla OSDp i OSDn"
-        FeeType         = 2
+        name            = "Oplata kogeneracyjna - OSDp / OSDn"
+        description     = "Wzorzec dla oplaty kogeneracyjnej dla OSDp i OSDn"
+        feeType         = 2
         contractorTypes = @(0, 1)
-        AllowComment    = $true
-        IsActive        = $true
-        CreatedAt       = (Get-Date).ToUniversalTime().ToString("o")
-        Fields          = @(
-            @{ Number = "1";   Code = "OKOSUM"; Name = "Wielkosc srodkow z tytulu oplaty kogeneracyjnej (1.1 - 1.2)"; DataType = "Number (12,2)"; IsRequired = $true; Unit = "zl" }
-            @{ Number = "1.1"; Code = "OKON";   Name = "Wielkosc naleznych srodkow"; DataType = "Number (12,2)"; IsRequired = $true; Unit = "zl" }
-            @{ Number = "1.2"; Code = "OKOPN";  Name = "Wierzytelnosci niesciagalne z poprzednich okresow"; DataType = "Number (12,2)"; IsRequired = $true; Unit = "zl" }
-            @{ Number = "1.3"; Code = "OKOO";   Name = "Wielkosc pobranych srodkow"; DataType = "Number (12,2)"; IsRequired = $true; Unit = "zl" }
-            @{ Number = "2";   Code = "OKOE";   Name = "Ilosc energii - podstawa naliczania oplaty kogeneracyjnej"; DataType = "Number (9,3)"; IsRequired = $true; Unit = "MWh" }
+        allowComment    = $true
+        isActive        = $true
+        createdAt       = (Get-Date).ToUniversalTime().ToString("o")
+        fields          = @(
+            @{ number = "1";   code = "OKOSUM"; name = "Wielkosc srodkow z tytulu oplaty kogeneracyjnej (1.1 - 1.2)"; dataType = "Number (12,2)"; isRequired = $true; unit = "zl" }
+            @{ number = "1.1"; code = "OKON";   name = "Wielkosc naleznych srodkow"; dataType = "Number (12,2)"; isRequired = $true; unit = "zl" }
+            @{ number = "1.2"; code = "OKOPN";  name = "Wierzytelnosci niesciagalne z poprzednich okresow"; dataType = "Number (12,2)"; isRequired = $true; unit = "zl" }
+            @{ number = "1.3"; code = "OKOO";   name = "Wielkosc pobranych srodkow"; dataType = "Number (12,2)"; isRequired = $true; unit = "zl" }
+            @{ number = "2";   code = "OKOE";   name = "Ilosc energii - podstawa naliczania oplaty kogeneracyjnej"; dataType = "Number (9,3)"; isRequired = $true; unit = "MWh" }
         )
     },
     @{
         id              = "tpl-oko-ok-wyt-mag"
-        Name            = "Oplata kogeneracyjna - OK / Wyt / Mag"
-        Description     = "Wzorzec dla oplaty kogeneracyjnej dla OK, wytworcow i magazynow"
-        FeeType         = 2
+        name            = "Oplata kogeneracyjna - OK / Wyt / Mag"
+        description     = "Wzorzec dla oplaty kogeneracyjnej dla OK, wytworcow i magazynow"
+        feeType         = 2
         contractorTypes = @(4, 2, 3)
-        AllowComment    = $true
-        IsActive        = $true
-        CreatedAt       = (Get-Date).ToUniversalTime().ToString("o")
-        Fields          = @(
-            @{ Number = "1"; Code = "OKOE"; Name = "Ilosc energii - podstawa naliczania oplaty kogeneracyjnej"; DataType = "Number (9,3)"; IsRequired = $false; Unit = "MWh" }
+        allowComment    = $true
+        isActive        = $true
+        createdAt       = (Get-Date).ToUniversalTime().ToString("o")
+        fields          = @(
+            @{ number = "1"; code = "OKOE"; name = "Ilosc energii - podstawa naliczania oplaty kogeneracyjnej"; dataType = "Number (9,3)"; isRequired = $false; unit = "MWh" }
         )
     }
 )
@@ -669,7 +669,7 @@ foreach ($tpl in $templates) {
 
     $jsonBody = $tpl | ConvertTo-Json -Depth 5
     Invoke-RestMethod -Uri "$cosmosEndpoint/$tplDocsResourceLink/docs" -Method Post -Headers $headers -Body ([System.Text.Encoding]::UTF8.GetBytes($jsonBody)) | Out-Null
-    Write-Host "  Dodano wzorzec: $($tpl.Name)" -ForegroundColor Gray
+    Write-Host "  Dodano wzorzec: $($tpl.name)" -ForegroundColor Gray
 }
 
 Write-Host "Seedowanie zakonczone - dodano $($templates.Count) wzorcow." -ForegroundColor Green
