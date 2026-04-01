@@ -7,6 +7,7 @@
 @inject IDeclarationService DeclarationService
 @inject IUserService UserService
 @inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager Navigation
 @rendermode InteractiveServer
 
 <PageTitle>Dashboard oswiadczen</PageTitle>
@@ -25,24 +26,24 @@
 </p>
 
 <div class="row mb-4">
-    <div class="col-md-4">
-        <div class="card text-white bg-primary">
+    <div class="col-md-4" role="button" @onclick="GoToAll">
+        <div class="card text-white bg-primary" style="cursor: pointer;">
             <div class="card-body">
                 <h5 class="card-title">Wszystkie</h5>
                 <p class="card-text display-6">@_totalCount</p>
             </div>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card text-white bg-secondary">
+    <div class="col-md-4" role="button" @onclick="GoToNotSubmitted">
+        <div class="card text-white bg-secondary" style="cursor: pointer;">
             <div class="card-body">
                 <h5 class="card-title">Nie zlozone</h5>
                 <p class="card-text display-6">@_nieZlozoneCount</p>
             </div>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card text-white bg-success">
+    <div class="col-md-4" role="button" @onclick="GoToSubmitted">
+        <div class="card text-white bg-success" style="cursor: pointer;">
             <div class="card-body">
                 <h5 class="card-title">Zlozone</h5>
                 <p class="card-text display-6">@_zlozoneCount</p>
@@ -83,6 +84,16 @@
         _totalCount = list.Count;
         _nieZlozoneCount = list.Count(d => d.Status == DeclarationStatus.NotSubmitted);
         _zlozoneCount = list.Count(d => d.Status == DeclarationStatus.Submitted);
+    }
+
+    private void GoToAll() => GoToDeclarations("all");
+    private void GoToNotSubmitted() => GoToDeclarations("not_submitted");
+    private void GoToSubmitted() => GoToDeclarations("submitted");
+
+    private void GoToDeclarations(string filter)
+    {
+        var now = DateTime.Now;
+        Navigation.NavigateTo($"/rozliczenia/declarations?year={now.Year}&month={now.Month}&filter={filter}");
     }
 
     private static string GetMonthName(int month) => month switch

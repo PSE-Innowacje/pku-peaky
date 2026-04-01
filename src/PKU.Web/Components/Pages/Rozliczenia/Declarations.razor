@@ -9,6 +9,7 @@
 @inject IUserService UserService
 @inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager Navigation
+@using Microsoft.AspNetCore.Components.Forms
 @rendermode InteractiveServer
 
 <PageTitle>Oswiadczenia rozliczeniowe</PageTitle>
@@ -198,8 +199,24 @@ else
     private string _filter = "all";
     private bool _loading = true;
 
+    [SupplyParameterFromQuery(Name = "year")]
+    public int? QueryYear { get; set; }
+
+    [SupplyParameterFromQuery(Name = "month")]
+    public int? QueryMonth { get; set; }
+
+    [SupplyParameterFromQuery(Name = "filter")]
+    public string? QueryFilter { get; set; }
+
     protected override async Task OnInitializedAsync()
     {
+        if (QueryYear.HasValue)
+            _selectedYear = QueryYear.Value;
+        if (QueryMonth.HasValue)
+            _selectedMonth = QueryMonth.Value;
+        if (!string.IsNullOrEmpty(QueryFilter))
+            _filter = QueryFilter;
+
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
         var userId = authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
