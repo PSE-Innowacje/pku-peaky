@@ -1,8 +1,6 @@
 @page "/admin/users"
 @attribute [Authorize(Roles = "Administrator")]
-@using PKU.Application.Interfaces
-@inject IUserService UserService
-@inject NavigationManager Navigation
+@using PKU.Domain.Enums
 @rendermode InteractiveServer
 
 <PageTitle>Uzytkownicy</PageTitle>
@@ -12,6 +10,43 @@
     <button class="btn btn-primary" @onclick="@(() => Navigation.NavigateTo("/admin/users/new"))">
         Dodaj uzytkownika
     </button>
+</div>
+
+<div class="row mb-3 align-items-end">
+    <div class="col-auto">
+        <label class="form-label fw-bold">Imie / nazwisko</label>
+        <input type="text" class="form-control form-control-sm" placeholder="Szukaj..." @bind="_filterName" @bind:event="oninput" @bind:after="ApplyFilter" />
+    </div>
+    <div class="col-auto">
+        <label class="form-label fw-bold">Email</label>
+        <input type="text" class="form-control form-control-sm" placeholder="Szukaj..." @bind="_filterEmail" @bind:event="oninput" @bind:after="ApplyFilter" />
+    </div>
+    <div class="col-auto">
+        <label class="form-label fw-bold">Rola</label>
+        <select class="form-select form-select-sm" @bind="_filterRole" @bind:after="ApplyFilter">
+            <option value="">Wszystkie</option>
+            <option value="Administrator">Administrator</option>
+            <option value="Kontrahent">Kontrahent</option>
+        </select>
+    </div>
+    <div class="col-auto">
+        <label class="form-label fw-bold">Typ kontrahenta</label>
+        <select class="form-select form-select-sm" @bind="_filterContractorType" @bind:after="ApplyFilter">
+            <option value="">Wszystkie</option>
+            @foreach (var ct in Enum.GetValues<ContractorType>())
+            {
+                <option value="@ct">@ct</option>
+            }
+        </select>
+    </div>
+    <div class="col-auto">
+        <label class="form-label fw-bold">Aktywny</label>
+        <select class="form-select form-select-sm" @bind="_filterActive" @bind:after="ApplyFilter">
+            <option value="">Wszystkie</option>
+            <option value="true">Tak</option>
+            <option value="false">Nie</option>
+        </select>
+    </div>
 </div>
 
 @if (_confirmDeleteUser is not null)
@@ -37,9 +72,9 @@
         </tr>
     </thead>
     <tbody>
-        @if (_users is not null)
+        @if (_filtered is not null)
         {
-            @foreach (var user in _users)
+            @foreach (var user in _filtered)
             {
                 <tr>
                     <td>@user.FullName</td>
@@ -56,33 +91,3 @@
         }
     </tbody>
 </table>
-
-@code {
-    private IEnumerable<PKU.Domain.Entities.User>? _users;
-    private PKU.Domain.Entities.User? _confirmDeleteUser;
-
-    protected override async Task OnInitializedAsync()
-    {
-        _users = await UserService.GetAllAsync();
-    }
-
-    private void RequestDelete(PKU.Domain.Entities.User user)
-    {
-        _confirmDeleteUser = user;
-    }
-
-    private async Task ConfirmDelete()
-    {
-        if (_confirmDeleteUser is not null)
-        {
-            await UserService.DeleteAsync(_confirmDeleteUser.Id);
-            _confirmDeleteUser = null;
-            _users = await UserService.GetAllAsync();
-        }
-    }
-
-    private void CancelDelete()
-    {
-        _confirmDeleteUser = null;
-    }
-}
