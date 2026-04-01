@@ -193,6 +193,12 @@ else if (_filteredDeclarations is not null && _filteredDeclarations.Any())
                                 <button class="btn btn-sm btn-outline-secondary" @onclick="() => ExportToJsonAsync(d)" disabled="@_exporting">
                                     Eksportuj
                                 </button>
+                                @if (_user is not null && _user.Role == UserRole.Kontrahent)
+                                {
+                                    <button class="btn btn-sm btn-outline-warning" @onclick="() => CreateCorrectionAsync(d)" disabled="@_creating">
+                                        Koryguj
+                                    </button>
+                                }
                             </div>
                         </td>
                     </tr>
@@ -222,6 +228,7 @@ else
     private bool _loading = true;
     private bool _generating;
     private bool _exporting;
+    private bool _creating;
 
     [SupplyParameterFromQuery(Name = "year")]
     public int? QueryYear { get; set; }
@@ -358,6 +365,49 @@ else
         finally
         {
             _exporting = false;
+        }
+    }
+
+    private async Task CreateCorrectionAsync(Declaration original)
+    {
+        if (_user is null) return;
+
+        _creating = true;
+        try
+        {
+            // Find the highest correction number for this fee type/period
+            var allForPeriod = await DeclarationService.GetForContractorMonthAsync(
+                _user.Id, original.BillingYear, original.BillingMonth);
+            var originalId = original.OriginalDeclarationId ?? original.Id;
+            var maxCorrectionNumber = allForPeriod
+                .Where(d => d.FeeType == original.FeeType
+                    && d.ContractorType == original.ContractorType
+                    && (d.OriginalDeclarationId == originalId || d.Id == originalId))
+                .Max(d => d.CorrectionNumber);
+
+            var correction = new Declaration
+            {
+                UserId = original.UserId,
+                ContractorType = original.ContractorType,
+                FeeType = original.FeeType,
+                FeeCategory = original.FeeCategory,
+                BillingYear = original.BillingYear,
+                BillingMonth = original.BillingMonth,
+                Status = DeclarationStatus.Draft,
+                Deadline = original.Deadline,
+                FieldValues = new Dictionary<string, string>(original.FieldValues),
+                CorrectionNumber = maxCorrectionNumber + 1,
+                OriginalDeclarationId = original.OriginalDeclarationId ?? original.Id
+            };
+
+            await DeclarationService.CreateAsync(correction);
+            await LoadDeclarationsAsync();
+
+            Navigation.NavigateTo($"/rozliczenia/declarations/{correction.Id}");
+        }
+        finally
+        {
+            _creating = false;
         }
     }
 

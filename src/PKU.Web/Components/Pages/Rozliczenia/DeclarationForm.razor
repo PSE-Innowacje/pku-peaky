@@ -35,7 +35,13 @@ else if (_accessDenied)
 else
 {
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h3 class="mb-0">Oswiadczenie — @ContractorFeeMapping.GetFeeTypeName(_declaration.FeeType)</h3>
+        <h3 class="mb-0">
+            @if (_declaration.CorrectionNumber > 0)
+            {
+                <span class="badge bg-warning text-dark me-2">Korekta nr @_declaration.CorrectionNumber</span>
+            }
+            Oswiadczenie — @ContractorFeeMapping.GetFeeTypeName(_declaration.FeeType)
+        </h3>
         <a href="/rozliczenia/declarations" class="btn btn-outline-secondary btn-sm">Powrot do listy</a>
     </div>
 
@@ -293,13 +299,29 @@ else
             _declaration.Status = DeclarationStatus.Submitted;
             _declaration.SubmittedAt = DateTime.UtcNow;
             var generator = new DeclarationNumberGenerator();
-            _declaration.DeclarationNumber = generator.GenerateBasicNumber(
-                _declaration.FeeType,
-                _user.ContractorAbbreviation ?? _user.ContractorCode ?? "UNKNOWN",
-                _declaration.BillingYear,
-                _declaration.BillingMonth,
-                subperiod: 1,
-                version: 1);
+            var abbreviation = _user.ContractorAbbreviation ?? _user.ContractorCode ?? "UNKNOWN";
+
+            if (_declaration.CorrectionNumber > 0)
+            {
+                _declaration.DeclarationNumber = generator.GenerateCorrectionNumber(
+                    _declaration.FeeType,
+                    abbreviation,
+                    _declaration.BillingYear,
+                    _declaration.BillingMonth,
+                    subperiod: 1,
+                    version: 1,
+                    correctionNumber: _declaration.CorrectionNumber);
+            }
+            else
+            {
+                _declaration.DeclarationNumber = generator.GenerateBasicNumber(
+                    _declaration.FeeType,
+                    abbreviation,
+                    _declaration.BillingYear,
+                    _declaration.BillingMonth,
+                    subperiod: 1,
+                    version: 1);
+            }
 
             await DeclarationService.UpdateAsync(_declaration);
             _successMessage = $"Oswiadczenie zlozone pomyslnie. Numer: {_declaration.DeclarationNumber}";
