@@ -18,6 +18,14 @@ public partial class Schedules
     private string _filterFeeType = "";
     private string _filterContractorType = "";
     private string _filterActive = "";
+    private int? _filterSubmitMin;
+    private int? _filterSubmitMax;
+    private int? _filterInvoiceMin;
+    private int? _filterInvoiceMax;
+    private int? _filterCorrectionMin;
+    private int? _filterCorrectionMax;
+    private int? _filterCorrInvoiceMin;
+    private int? _filterCorrInvoiceMax;
 
     protected override async Task OnInitializedAsync()
     {
@@ -34,6 +42,11 @@ public partial class Schedules
 
         if (!string.IsNullOrWhiteSpace(_filterContractorType) && Enum.TryParse<ContractorType>(_filterContractorType, out var ct))
             q = q.Where(s => s.ContractorType == ct);
+
+        q = FilterByItemDays(q, ScheduleItemType.DeclarationSubmit, _filterSubmitMin, _filterSubmitMax);
+        q = FilterByItemDays(q, ScheduleItemType.DeclarationInvoice, _filterInvoiceMin, _filterInvoiceMax);
+        q = FilterByItemDays(q, ScheduleItemType.DeclarationCorrection, _filterCorrectionMin, _filterCorrectionMax);
+        q = FilterByItemDays(q, ScheduleItemType.DeclarationCorrectionInvoice, _filterCorrInvoiceMin, _filterCorrInvoiceMax);
 
         if (_filterActive == "true")
             q = q.Where(s => s.IsActive);
@@ -72,6 +85,20 @@ public partial class Schedules
             _schedules = await ScheduleService.GetAllAsync();
             ApplyFilter();
         }
+    }
+
+    private static IEnumerable<Schedule> FilterByItemDays(
+        IEnumerable<Schedule> source, ScheduleItemType itemType, int? min, int? max)
+    {
+        if (!min.HasValue && !max.HasValue) return source;
+        return source.Where(s =>
+        {
+            var item = s.Items.FirstOrDefault(i => i.ItemType == itemType);
+            if (item is null) return false;
+            if (min.HasValue && item.Days < min.Value) return false;
+            if (max.HasValue && item.Days > max.Value) return false;
+            return true;
+        });
     }
 
     internal static string FormatItem(Schedule schedule, ScheduleItemType itemType)

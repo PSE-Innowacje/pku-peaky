@@ -22,7 +22,10 @@ public partial class DeclarationTemplates
     private string _filterName = "";
     private string _filterFeeType = "";
     private string _filterContractorType = "";
+    private string _filterComment = "";
     private string _filterActive = "";
+    private int? _filterFieldsMin;
+    private int? _filterFieldsMax;
 
     protected override async Task OnInitializedAsync()
     {
@@ -47,6 +50,16 @@ public partial class DeclarationTemplates
 
         if (!string.IsNullOrWhiteSpace(_filterContractorType) && Enum.TryParse<ContractorType>(_filterContractorType, out var ct))
             q = q.Where(t => t.ContractorTypes.Contains(ct));
+
+        if (_filterComment == "true")
+            q = q.Where(t => t.AllowComment);
+        else if (_filterComment == "false")
+            q = q.Where(t => !t.AllowComment);
+
+        if (_filterFieldsMin.HasValue)
+            q = q.Where(t => t.Fields.Count >= _filterFieldsMin.Value);
+        if (_filterFieldsMax.HasValue)
+            q = q.Where(t => t.Fields.Count <= _filterFieldsMax.Value);
 
         if (_filterActive == "true")
             q = q.Where(t => t.IsActive);

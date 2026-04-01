@@ -135,6 +135,21 @@
         </select>
     </div>
     <div class="col-auto">
+        <label class="form-label fw-bold">Pozycje od-do</label>
+        <div class="d-flex gap-1">
+            <input type="number" class="form-control form-control-sm" style="width:70px" placeholder="od" @bind="_filterFieldsMin" @bind:after="ApplyFilter" />
+            <input type="number" class="form-control form-control-sm" style="width:70px" placeholder="do" @bind="_filterFieldsMax" @bind:after="ApplyFilter" />
+        </div>
+    </div>
+    <div class="col-auto">
+        <label class="form-label fw-bold">Komentarz</label>
+        <select class="form-select form-select-sm" @bind="_filterComment" @bind:after="ApplyFilter">
+            <option value="">Wszystkie</option>
+            <option value="true">TAK</option>
+            <option value="false">NIE</option>
+        </select>
+    </div>
+    <div class="col-auto">
         <label class="form-label fw-bold">Aktywny</label>
         <select class="form-select form-select-sm" @bind="_filterActive" @bind:after="ApplyFilter">
             <option value="">Wszystkie</option>

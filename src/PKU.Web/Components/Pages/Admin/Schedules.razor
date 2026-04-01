@@ -33,6 +33,34 @@
         </select>
     </div>
     <div class="col-auto">
+        <label class="form-label fw-bold">Skladanie osw. (dni)</label>
+        <div class="d-flex gap-1">
+            <input type="number" class="form-control form-control-sm" style="width:70px" placeholder="od" @bind="_filterSubmitMin" @bind:after="ApplyFilter" />
+            <input type="number" class="form-control form-control-sm" style="width:70px" placeholder="do" @bind="_filterSubmitMax" @bind:after="ApplyFilter" />
+        </div>
+    </div>
+    <div class="col-auto">
+        <label class="form-label fw-bold">Faktura (dni)</label>
+        <div class="d-flex gap-1">
+            <input type="number" class="form-control form-control-sm" style="width:70px" placeholder="od" @bind="_filterInvoiceMin" @bind:after="ApplyFilter" />
+            <input type="number" class="form-control form-control-sm" style="width:70px" placeholder="do" @bind="_filterInvoiceMax" @bind:after="ApplyFilter" />
+        </div>
+    </div>
+    <div class="col-auto">
+        <label class="form-label fw-bold">Korekta (dni)</label>
+        <div class="d-flex gap-1">
+            <input type="number" class="form-control form-control-sm" style="width:70px" placeholder="od" @bind="_filterCorrectionMin" @bind:after="ApplyFilter" />
+            <input type="number" class="form-control form-control-sm" style="width:70px" placeholder="do" @bind="_filterCorrectionMax" @bind:after="ApplyFilter" />
+        </div>
+    </div>
+    <div class="col-auto">
+        <label class="form-label fw-bold">Fakt. po kor. (dni)</label>
+        <div class="d-flex gap-1">
+            <input type="number" class="form-control form-control-sm" style="width:70px" placeholder="od" @bind="_filterCorrInvoiceMin" @bind:after="ApplyFilter" />
+            <input type="number" class="form-control form-control-sm" style="width:70px" placeholder="do" @bind="_filterCorrInvoiceMax" @bind:after="ApplyFilter" />
+        </div>
+    </div>
+    <div class="col-auto">
         <label class="form-label fw-bold">Aktywny</label>
         <select class="form-select form-select-sm" @bind="_filterActive" @bind:after="ApplyFilter">
             <option value="">Wszystkie</option>
