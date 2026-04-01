@@ -15,10 +15,7 @@ public static class DependencyInjection
 
         var cosmosClientOptions = new CosmosClientOptions
         {
-            SerializerOptions = new CosmosSerializationOptions
-            {
-                PropertyNamingPolicy = CosmosPropertyNamingPolicy.CamelCase
-            },
+            Serializer = new CustomCosmosSerializer(),
             HttpClientFactory = () =>
             {
                 return new HttpClient(new HttpClientHandler
