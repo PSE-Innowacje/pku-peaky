@@ -25,6 +25,20 @@
     Okres: <strong>@GetMonthName(DateTime.Now.Month) @DateTime.Now.Year</strong>
 </p>
 
+@if (_totalCount == 0 && _user is not null && _user.Role == UserRole.Kontrahent)
+{
+    <div class="alert alert-warning">
+        <p class="mb-2">Brak oswiadczen dla biezacego okresu. Wygeneruj oswiadczenia, aby rozpoczac prace.</p>
+        <button class="btn btn-success" @onclick="GenerateDeclarationsAsync" disabled="@_generating">
+            @if (_generating)
+            {
+                <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+            }
+            Generuj oswiadczenia
+        </button>
+    </div>
+}
+
 <div class="row mb-4">
     <div class="col-md-4" role="button" @onclick="GoToAll">
         <div class="card text-white bg-primary" style="cursor: pointer;">
@@ -57,6 +71,7 @@
     private int _totalCount;
     private int _nieZlozoneCount;
     private int _zlozoneCount;
+    private bool _generating;
 
     protected override async Task OnInitializedAsync()
     {
@@ -84,6 +99,20 @@
         _totalCount = list.Count;
         _nieZlozoneCount = list.Count(d => d.Status == DeclarationStatus.NotSubmitted);
         _zlozoneCount = list.Count(d => d.Status == DeclarationStatus.Submitted);
+    }
+
+    private async Task GenerateDeclarationsAsync()
+    {
+        if (_user is null) return;
+
+        _generating = true;
+        var now = DateTime.Now;
+        var declarations = await DeclarationService.CreateMissingDeclarationsAsync(_user.Id, now.Year, now.Month);
+        var list = declarations.ToList();
+        _totalCount = list.Count;
+        _nieZlozoneCount = list.Count(d => d.Status == DeclarationStatus.NotSubmitted);
+        _zlozoneCount = list.Count(d => d.Status == DeclarationStatus.Submitted);
+        _generating = false;
     }
 
     private void GoToAll() => GoToDeclarations("all");

@@ -136,129 +136,129 @@ $passwordHash = [System.Convert]::ToBase64String($hashBytes)
 $users = @(
     @{
         id = "1"
-        FirstName = "Administrator"
-        LastName = "Systemowy"
-        Email = "admin@pku.pl"
-        PasswordHash = $passwordHash
-        Role = 0  # Administrator
-        IsActive = $true
-        CreatedAt = (Get-Date).ToUniversalTime().ToString("o")
-        ContractorAbbreviation = ""
-        ContractorFullName = ""
-        ContractorShortName = ""
-        KRS = ""
-        NIP = ""
-        HeadquartersAddress = ""
-        ContractorCode = ""
-        ContractorTypes = @()
-        ContractNumber = ""
-        ContractStartDate = $null
-        ContractEndDate = $null
+        firstName = "Administrator"
+        lastName = "Systemowy"
+        email = "admin@pku.pl"
+        passwordHash = $passwordHash
+        role = 0  # Administrator
+        isActive = $true
+        createdAt = (Get-Date).ToUniversalTime().ToString("o")
+        contractorAbbreviation = ""
+        contractorFullName = ""
+        contractorShortName = ""
+        krs = ""
+        nip = ""
+        headquartersAddress = ""
+        contractorCode = ""
+        contractorTypes = @()
+        contractNumber = ""
+        contractStartDate = $null
+        contractEndDate = $null
     },
     @{
         id = "2"
-        FirstName = "Jan"
-        LastName = "Kowalski"
-        Email = "osdp@pku.pl"
-        PasswordHash = $passwordHash
-        Role = 1  # Kontrahent
-        IsActive = $true
-        CreatedAt = (Get-Date).ToUniversalTime().ToString("o")
-        ContractorAbbreviation = "OSDp-JK"
-        ContractorFullName = "Jan Kowalski Sp. z o.o."
-        ContractorShortName = "JK Sp."
-        KRS = "0000123456"
-        NIP = "1234567890"
-        HeadquartersAddress = "ul. Energetyczna 1, 00-001 Warszawa"
-        ContractorCode = "KON-001"
-        ContractorTypes = @(0)  # OSDp
-        ContractNumber = "UP/2025/001"
-        ContractStartDate = "2025-01-01T00:00:00.0000000Z"
-        ContractEndDate = "2026-12-31T00:00:00.0000000Z"
+        firstName = "Jan"
+        lastName = "Kowalski"
+        email = "osdp@pku.pl"
+        passwordHash = $passwordHash
+        role = 1  # Kontrahent
+        isActive = $true
+        createdAt = (Get-Date).ToUniversalTime().ToString("o")
+        contractorAbbreviation = "OSDp-JK"
+        contractorFullName = "Jan Kowalski Sp. z o.o."
+        contractorShortName = "JK Sp."
+        krs = "0000123456"
+        nip = "1234567890"
+        headquartersAddress = "ul. Energetyczna 1, 00-001 Warszawa"
+        contractorCode = "KON-001"
+        contractorTypes = @(0)  # OSDp
+        contractNumber = "UP/2025/001"
+        contractStartDate = "2025-01-01T00:00:00.0000000Z"
+        contractEndDate = "2026-12-31T00:00:00.0000000Z"
     },
     @{
         id = "3"
-        FirstName = "Anna"
-        LastName = "Nowak"
-        Email = "osdn@pku.pl"
-        PasswordHash = $passwordHash
-        Role = 1  # Kontrahent
-        IsActive = $true
-        CreatedAt = (Get-Date).ToUniversalTime().ToString("o")
-        ContractorAbbreviation = "OSDn-AN"
-        ContractorFullName = "Anna Nowak Energia S.A."
-        ContractorShortName = "AN Energia"
-        KRS = "0000234567"
-        NIP = "2345678901"
-        HeadquartersAddress = "ul. Przesylowa 5, 00-002 Krakow"
-        ContractorCode = "KON-002"
-        ContractorTypes = @(1)  # OSDn
-        ContractNumber = "UP/2025/002"
-        ContractStartDate = "2025-03-01T00:00:00.0000000Z"
-        ContractEndDate = "2027-02-28T00:00:00.0000000Z"
+        firstName = "Anna"
+        lastName = "Nowak"
+        email = "osdn@pku.pl"
+        passwordHash = $passwordHash
+        role = 1  # Kontrahent
+        isActive = $true
+        createdAt = (Get-Date).ToUniversalTime().ToString("o")
+        contractorAbbreviation = "OSDn-AN"
+        contractorFullName = "Anna Nowak Energia S.A."
+        contractorShortName = "AN Energia"
+        krs = "0000234567"
+        nip = "2345678901"
+        headquartersAddress = "ul. Przesylowa 5, 00-002 Krakow"
+        contractorCode = "KON-002"
+        contractorTypes = @(1)  # OSDn
+        contractNumber = "UP/2025/002"
+        contractStartDate = "2025-03-01T00:00:00.0000000Z"
+        contractEndDate = "2027-02-28T00:00:00.0000000Z"
     },
     @{
         id = "4"
-        FirstName = "Piotr"
-        LastName = "Wisniewski"
-        Email = "ok@pku.pl"
-        PasswordHash = $passwordHash
-        Role = 1  # Kontrahent
-        IsActive = $true
-        CreatedAt = (Get-Date).ToUniversalTime().ToString("o")
-        ContractorAbbreviation = "OK-PW"
-        ContractorFullName = "Piotr Wisniewski Odbiorca Koncowy"
-        ContractorShortName = "PW Odbiorca"
-        KRS = "0000345678"
-        NIP = "3456789012"
-        HeadquartersAddress = "ul. Odbiorcza 10, 00-003 Gdansk"
-        ContractorCode = "KON-003"
-        ContractorTypes = @(4)  # OdbiorcaKoncowy
-        ContractNumber = "UP/2025/003"
-        ContractStartDate = "2025-06-01T00:00:00.0000000Z"
-        ContractEndDate = "2026-05-31T00:00:00.0000000Z"
+        firstName = "Piotr"
+        lastName = "Wisniewski"
+        email = "ok@pku.pl"
+        passwordHash = $passwordHash
+        role = 1  # Kontrahent
+        isActive = $true
+        createdAt = (Get-Date).ToUniversalTime().ToString("o")
+        contractorAbbreviation = "OK-PW"
+        contractorFullName = "Piotr Wisniewski Odbiorca Koncowy"
+        contractorShortName = "PW Odbiorca"
+        krs = "0000345678"
+        nip = "3456789012"
+        headquartersAddress = "ul. Odbiorcza 10, 00-003 Gdansk"
+        contractorCode = "KON-003"
+        contractorTypes = @(4)  # OdbiorcaKoncowy
+        contractNumber = "UP/2025/003"
+        contractStartDate = "2025-06-01T00:00:00.0000000Z"
+        contractEndDate = "2026-05-31T00:00:00.0000000Z"
     },
     @{
         id = "5"
-        FirstName = "Maria"
-        LastName = "Zielinska"
-        Email = "wyt@pku.pl"
-        PasswordHash = $passwordHash
-        Role = 1  # Kontrahent
-        IsActive = $true
-        CreatedAt = (Get-Date).ToUniversalTime().ToString("o")
-        ContractorAbbreviation = "WYT-MZ"
-        ContractorFullName = "Maria Zielinska Wytwarzanie Sp. z o.o."
-        ContractorShortName = "MZ Wyt"
-        KRS = "0000456789"
-        NIP = "4567890123"
-        HeadquartersAddress = "ul. Wytworcza 20, 00-004 Poznan"
-        ContractorCode = "KON-004"
-        ContractorTypes = @(2)  # Wytworca
-        ContractNumber = "UP/2025/004"
-        ContractStartDate = "2025-01-15T00:00:00.0000000Z"
-        ContractEndDate = "2027-01-14T00:00:00.0000000Z"
+        firstName = "Maria"
+        lastName = "Zielinska"
+        email = "wyt@pku.pl"
+        passwordHash = $passwordHash
+        role = 1  # Kontrahent
+        isActive = $true
+        createdAt = (Get-Date).ToUniversalTime().ToString("o")
+        contractorAbbreviation = "WYT-MZ"
+        contractorFullName = "Maria Zielinska Wytwarzanie Sp. z o.o."
+        contractorShortName = "MZ Wyt"
+        krs = "0000456789"
+        nip = "4567890123"
+        headquartersAddress = "ul. Wytworcza 20, 00-004 Poznan"
+        contractorCode = "KON-004"
+        contractorTypes = @(2)  # Wytworca
+        contractNumber = "UP/2025/004"
+        contractStartDate = "2025-01-15T00:00:00.0000000Z"
+        contractEndDate = "2027-01-14T00:00:00.0000000Z"
     },
     @{
         id = "6"
-        FirstName = "Tomasz"
-        LastName = "Lewandowski"
-        Email = "mag@pku.pl"
-        PasswordHash = $passwordHash
-        Role = 1  # Kontrahent
-        IsActive = $true
-        CreatedAt = (Get-Date).ToUniversalTime().ToString("o")
-        ContractorAbbreviation = "MAG-TL"
-        ContractorFullName = "Tomasz Lewandowski Magazyn Energii S.A."
-        ContractorShortName = "TL Magazyn"
-        KRS = "0000567890"
-        NIP = "5678901234"
-        HeadquartersAddress = "ul. Magazynowa 30, 00-005 Wroclaw"
-        ContractorCode = "KON-005"
-        ContractorTypes = @(3)  # Magazyn
-        ContractNumber = "UP/2025/005"
-        ContractStartDate = "2025-04-01T00:00:00.0000000Z"
-        ContractEndDate = "2026-03-31T00:00:00.0000000Z"
+        firstName = "Tomasz"
+        lastName = "Lewandowski"
+        email = "mag@pku.pl"
+        passwordHash = $passwordHash
+        role = 1  # Kontrahent
+        isActive = $true
+        createdAt = (Get-Date).ToUniversalTime().ToString("o")
+        contractorAbbreviation = "MAG-TL"
+        contractorFullName = "Tomasz Lewandowski Magazyn Energii S.A."
+        contractorShortName = "TL Magazyn"
+        krs = "0000567890"
+        nip = "5678901234"
+        headquartersAddress = "ul. Magazynowa 30, 00-005 Wroclaw"
+        contractorCode = "KON-005"
+        contractorTypes = @(3)  # Magazyn
+        contractNumber = "UP/2025/005"
+        contractStartDate = "2025-04-01T00:00:00.0000000Z"
+        contractEndDate = "2026-03-31T00:00:00.0000000Z"
     }
 )
 
@@ -278,7 +278,7 @@ foreach ($user in $users) {
 
     $jsonBody = $user | ConvertTo-Json -Depth 3
     Invoke-RestMethod -Uri "$cosmosEndpoint/$docsResourceLink/docs" -Method Post -Headers $headers -Body ([System.Text.Encoding]::UTF8.GetBytes($jsonBody)) | Out-Null
-    Write-Host "  Dodano uzytkownika: $($user.Email)" -ForegroundColor Gray
+    Write-Host "  Dodano uzytkownika: $($user.email)" -ForegroundColor Gray
 }
 
 Write-Host "Seedowanie zakonczone - dodano $($users.Count) uzytkownikow." -ForegroundColor Green
@@ -336,93 +336,93 @@ $declarations = @(
     # === OSDp (user "2") - poprzedni miesiac: 2 zlozone ===
     @{
         id                = "seed-osdp-op-prev"
-        UserId            = "2"
-        ContractorType    = 0  # OSDp
-        FeeType           = 0  # OP
-        FeeCategory       = 0  # Pozaprzesylowa
-        BillingYear       = $prevYear
-        BillingMonth      = $prevMonth
-        DeclarationNumber = "OSW/OP/OSDp-JK/$prevYear/$("{0:D2}" -f $prevMonth)/01/01"
-        Status            = 2  # Submitted
-        SubmittedAt       = $prevPeriodStart.AddMonths(1).AddDays(4).ToUniversalTime().ToString("o")
-        CreatedAt         = $prevPeriodStart.AddMonths(1).AddDays(4).ToUniversalTime().ToString("o")
-        Deadline          = $prevPeriodStart.AddMonths(1).AddDays(9).ToUniversalTime().ToString("o")
+        userId            = "2"
+        contractorType    = 0  # OSDp
+        feeType           = 0  # OP
+        feeCategory       = 0  # Pozaprzesylowa
+        billingYear       = $prevYear
+        billingMonth      = $prevMonth
+        declarationNumber = "OSW/OP/OSDp-JK/$prevYear/$("{0:D2}" -f $prevMonth)/01/01"
+        status            = 2  # Submitted
+        submittedAt       = $prevPeriodStart.AddMonths(1).AddDays(4).ToUniversalTime().ToString("o")
+        createdAt         = $prevPeriodStart.AddMonths(1).AddDays(4).ToUniversalTime().ToString("o")
+        deadline          = $prevPeriodStart.AddMonths(1).AddDays(9).ToUniversalTime().ToString("o")
     },
     @{
         id                = "seed-osdp-oze-prev"
-        UserId            = "2"
-        ContractorType    = 0  # OSDp
-        FeeType           = 1  # OZE
-        FeeCategory       = 0  # Pozaprzesylowa
-        BillingYear       = $prevYear
-        BillingMonth      = $prevMonth
-        DeclarationNumber = "OSW/OZE/OSDp-JK/$prevYear/$("{0:D2}" -f $prevMonth)/01/01"
-        Status            = 2  # Submitted
-        SubmittedAt       = $prevPeriodStart.AddMonths(1).AddDays(5).ToUniversalTime().ToString("o")
-        CreatedAt         = $prevPeriodStart.AddMonths(1).AddDays(5).ToUniversalTime().ToString("o")
-        Deadline          = $prevPeriodStart.AddMonths(1).AddDays(9).ToUniversalTime().ToString("o")
+        userId            = "2"
+        contractorType    = 0  # OSDp
+        feeType           = 1  # OZE
+        feeCategory       = 0  # Pozaprzesylowa
+        billingYear       = $prevYear
+        billingMonth      = $prevMonth
+        declarationNumber = "OSW/OZE/OSDp-JK/$prevYear/$("{0:D2}" -f $prevMonth)/01/01"
+        status            = 2  # Submitted
+        submittedAt       = $prevPeriodStart.AddMonths(1).AddDays(5).ToUniversalTime().ToString("o")
+        createdAt         = $prevPeriodStart.AddMonths(1).AddDays(5).ToUniversalTime().ToString("o")
+        deadline          = $prevPeriodStart.AddMonths(1).AddDays(9).ToUniversalTime().ToString("o")
     },
 
     # === OSDp - biezacy miesiac: 1 robocze (OKO), 1 zlozone (OP) ===
     @{
         id                = "seed-osdp-oko-curr"
-        UserId            = "2"
-        ContractorType    = 0  # OSDp
-        FeeType           = 2  # OKO
-        FeeCategory       = 0  # Pozaprzesylowa
-        BillingYear       = $currentYear
-        BillingMonth      = $currentMonth
-        DeclarationNumber = ""
-        Status            = 1  # Draft
-        SubmittedAt       = $null
-        CreatedAt         = (Get-Date).ToUniversalTime().ToString("o")
-        Deadline          = $currPeriodStart.AddMonths(1).AddDays(9).ToUniversalTime().ToString("o")
+        userId            = "2"
+        contractorType    = 0  # OSDp
+        feeType           = 2  # OKO
+        feeCategory       = 0  # Pozaprzesylowa
+        billingYear       = $currentYear
+        billingMonth      = $currentMonth
+        declarationNumber = ""
+        status            = 1  # Draft
+        submittedAt       = $null
+        createdAt         = (Get-Date).ToUniversalTime().ToString("o")
+        deadline          = $currPeriodStart.AddMonths(1).AddDays(9).ToUniversalTime().ToString("o")
     },
     @{
         id                = "seed-osdp-op-curr"
-        UserId            = "2"
-        ContractorType    = 0  # OSDp
-        FeeType           = 0  # OP
-        FeeCategory       = 0  # Pozaprzesylowa
-        BillingYear       = $currentYear
-        BillingMonth      = $currentMonth
-        DeclarationNumber = "OSW/OP/OSDp-JK/$currentYear/$("{0:D2}" -f $currentMonth)/01/01"
-        Status            = 2  # Submitted
-        SubmittedAt       = (Get-Date).AddDays(-2).ToUniversalTime().ToString("o")
-        CreatedAt         = (Get-Date).AddDays(-2).ToUniversalTime().ToString("o")
-        Deadline          = $currPeriodStart.AddMonths(1).AddDays(9).ToUniversalTime().ToString("o")
+        userId            = "2"
+        contractorType    = 0  # OSDp
+        feeType           = 0  # OP
+        feeCategory       = 0  # Pozaprzesylowa
+        billingYear       = $currentYear
+        billingMonth      = $currentMonth
+        declarationNumber = "OSW/OP/OSDp-JK/$currentYear/$("{0:D2}" -f $currentMonth)/01/01"
+        status            = 2  # Submitted
+        submittedAt       = (Get-Date).AddDays(-2).ToUniversalTime().ToString("o")
+        createdAt         = (Get-Date).AddDays(-2).ToUniversalTime().ToString("o")
+        deadline          = $currPeriodStart.AddMonths(1).AddDays(9).ToUniversalTime().ToString("o")
     },
 
     # === OSDn (user "3") - poprzedni miesiac: 1 zlozone ===
     @{
         id                = "seed-osdn-oze-prev"
-        UserId            = "3"
-        ContractorType    = 1  # OSDn
-        FeeType           = 1  # OZE
-        FeeCategory       = 0  # Pozaprzesylowa
-        BillingYear       = $prevYear
-        BillingMonth      = $prevMonth
-        DeclarationNumber = "OSW/OZE/OSDn-AN/$prevYear/$("{0:D2}" -f $prevMonth)/01/01"
-        Status            = 2  # Submitted
-        SubmittedAt       = $prevPeriodStart.AddMonths(1).AddDays(3).ToUniversalTime().ToString("o")
-        CreatedAt         = $prevPeriodStart.AddMonths(1).AddDays(3).ToUniversalTime().ToString("o")
-        Deadline          = $prevPeriodStart.AddMonths(1).AddDays(9).ToUniversalTime().ToString("o")
+        userId            = "3"
+        contractorType    = 1  # OSDn
+        feeType           = 1  # OZE
+        feeCategory       = 0  # Pozaprzesylowa
+        billingYear       = $prevYear
+        billingMonth      = $prevMonth
+        declarationNumber = "OSW/OZE/OSDn-AN/$prevYear/$("{0:D2}" -f $prevMonth)/01/01"
+        status            = 2  # Submitted
+        submittedAt       = $prevPeriodStart.AddMonths(1).AddDays(3).ToUniversalTime().ToString("o")
+        createdAt         = $prevPeriodStart.AddMonths(1).AddDays(3).ToUniversalTime().ToString("o")
+        deadline          = $prevPeriodStart.AddMonths(1).AddDays(9).ToUniversalTime().ToString("o")
     },
 
     # === Wytworca (user "5") - biezacy miesiac: 1 zlozone ===
     @{
         id                = "seed-wyt-om-curr"
-        UserId            = "5"
-        ContractorType    = 2  # Wytworca
-        FeeType           = 3  # OM
-        FeeCategory       = 0  # Pozaprzesylowa
-        BillingYear       = $currentYear
-        BillingMonth      = $currentMonth
-        DeclarationNumber = "OSW/OM/WYT-MZ/$currentYear/$("{0:D2}" -f $currentMonth)/01/01"
-        Status            = 2  # Submitted
-        SubmittedAt       = (Get-Date).AddDays(-1).ToUniversalTime().ToString("o")
-        CreatedAt         = (Get-Date).AddDays(-1).ToUniversalTime().ToString("o")
-        Deadline          = $currPeriodStart.AddMonths(1).AddDays(9).ToUniversalTime().ToString("o")
+        userId            = "5"
+        contractorType    = 2  # Wytworca
+        feeType           = 3  # OM
+        feeCategory       = 0  # Pozaprzesylowa
+        billingYear       = $currentYear
+        billingMonth      = $currentMonth
+        declarationNumber = "OSW/OM/WYT-MZ/$currentYear/$("{0:D2}" -f $currentMonth)/01/01"
+        status            = 2  # Submitted
+        submittedAt       = (Get-Date).AddDays(-1).ToUniversalTime().ToString("o")
+        createdAt         = (Get-Date).AddDays(-1).ToUniversalTime().ToString("o")
+        deadline          = $currPeriodStart.AddMonths(1).AddDays(9).ToUniversalTime().ToString("o")
     }
 )
 
@@ -442,7 +442,7 @@ foreach ($decl in $declarations) {
 
     $jsonBody = $decl | ConvertTo-Json -Depth 3
     Invoke-RestMethod -Uri "$cosmosEndpoint/$declDocsResourceLink/docs" -Method Post -Headers $headers -Body ([System.Text.Encoding]::UTF8.GetBytes($jsonBody)) | Out-Null
-    Write-Host "  Dodano deklaracje: $($decl.id) (FeeType=$($decl.FeeType), Status=$($decl.Status))" -ForegroundColor Gray
+    Write-Host "  Dodano deklaracje: $($decl.id) (FeeType=$($decl.feeType), Status=$($decl.status))" -ForegroundColor Gray
 }
 
 Write-Host "Seedowanie zakonczone - dodano $($declarations.Count) deklaracji." -ForegroundColor Green
@@ -563,7 +563,7 @@ $templates = @(
         Name            = "Oplata przejsciowa - OSDp / OSDn"
         Description     = "Wzorzec oswiadczenia dla oplaty przejsciowej (OP) dla OSDp i OSDn"
         FeeType         = 0  # OP
-        ContractorTypes = @(0, 1)  # OSDp, OSDn
+        contractorTypes = @(0, 1)  # OSDp, OSDn
         AllowComment    = $true
         IsActive        = $true
         CreatedAt       = (Get-Date).ToUniversalTime().ToString("o")
@@ -584,7 +584,7 @@ $templates = @(
         Name            = "Oplata OZE - OSDp / OSDn"
         Description     = "Wzorzec oswiadczenia dla oplaty OZE dla OSDp i OSDn"
         FeeType         = 1  # OZE
-        ContractorTypes = @(0, 1)
+        contractorTypes = @(0, 1)
         AllowComment    = $true
         IsActive        = $true
         CreatedAt       = (Get-Date).ToUniversalTime().ToString("o")
@@ -600,7 +600,7 @@ $templates = @(
         Name            = "Oplata OZE - Odbiorcy koncowi / Magazyny"
         Description     = "Wzorzec dla oplaty OZE dla OK i Magazynow"
         FeeType         = 1
-        ContractorTypes = @(4, 3)
+        contractorTypes = @(4, 3)
         AllowComment    = $true
         IsActive        = $true
         CreatedAt       = (Get-Date).ToUniversalTime().ToString("o")
@@ -613,7 +613,7 @@ $templates = @(
         Name            = "Oplata OZE - Wytworca"
         Description     = "Wzorzec dla oplaty OZE dla wytworcow"
         FeeType         = 1
-        ContractorTypes = @(2)
+        contractorTypes = @(2)
         AllowComment    = $true
         IsActive        = $true
         CreatedAt       = (Get-Date).ToUniversalTime().ToString("o")
@@ -626,7 +626,7 @@ $templates = @(
         Name            = "Oplata kogeneracyjna - OSDp / OSDn"
         Description     = "Wzorzec dla oplaty kogeneracyjnej dla OSDp i OSDn"
         FeeType         = 2
-        ContractorTypes = @(0, 1)
+        contractorTypes = @(0, 1)
         AllowComment    = $true
         IsActive        = $true
         CreatedAt       = (Get-Date).ToUniversalTime().ToString("o")
@@ -643,7 +643,7 @@ $templates = @(
         Name            = "Oplata kogeneracyjna - OK / Wyt / Mag"
         Description     = "Wzorzec dla oplaty kogeneracyjnej dla OK, wytworcow i magazynow"
         FeeType         = 2
-        ContractorTypes = @(4, 2, 3)
+        contractorTypes = @(4, 2, 3)
         AllowComment    = $true
         IsActive        = $true
         CreatedAt       = (Get-Date).ToUniversalTime().ToString("o")
