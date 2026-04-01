@@ -21,9 +21,21 @@
             Kontrahent: <strong>@_user.FullName</strong> &middot; Typ: <strong>@string.Join(", ", _user.ContractorTypes)</strong>
         </p>
     }
-    <p class="text-muted mb-0">
-        Okres: <strong>@GetMonthName(DateTime.Now.Month) @DateTime.Now.Year</strong>
-    </p>
+    <div class="d-flex align-items-center gap-3 mt-2">
+        <label class="text-muted mb-0">Okres:</label>
+        <select class="form-select form-select-sm" style="width: auto;" @onchange="OnMonthChanged" value="@_selectedMonth">
+            @for (int m = 1; m <= 12; m++)
+            {
+                <option value="@m">@GetMonthName(m)</option>
+            }
+        </select>
+        <select class="form-select form-select-sm" style="width: auto;" @onchange="OnYearChanged" value="@_selectedYear">
+            @for (int y = DateTime.Now.Year; y >= DateTime.Now.Year - 5; y--)
+            {
+                <option value="@y">@y</option>
+            }
+        </select>
+    </div>
 </div>
 
 @if (_totalCount == 0 && _user is not null && _user.Role == UserRole.Kontrahent)
@@ -43,8 +55,16 @@
     </div>
 }
 
+@if (_loading)
+{
+    <div class="text-center my-4">
+        <div class="spinner-border text-primary" role="status"></div>
+        <p class="text-muted mt-2">Ladowanie danych...</p>
+    </div>
+}
+
 @* ===== SUMMARY CARDS ===== *@
-<div class="row g-3 mb-4">
+<div class="row g-3 mb-4" style="@(_loading ? "opacity: 0.5; pointer-events: none;" : "")">
     <div class="col-lg-4 col-md-6" role="button" @onclick="GoToAll">
         <div class="dash-card dash-card-total">
             <div class="dash-card-icon">&#128203;</div>
@@ -333,6 +353,8 @@
 @code {
     private User? _user;
     private List<Declaration> _declarations = new();
+    private int _selectedYear = DateTime.Now.Year;
+    private int _selectedMonth = DateTime.Now.Month;
     private int _totalCount;
     private int _nieZlozoneCount;
     private int _zlozoneCount;
@@ -340,6 +362,7 @@
     private int _overdueCount;
     private int _correctionsCount;
     private bool _generating;
+    private bool _loading;
 
     private List<FeeTypeRow> _feeTypeRows = new();
     private List<CategoryStat> _categoryStats = new();
@@ -356,12 +379,19 @@
         _user = await UserService.GetByIdAsync(userId);
         if (_user is null) return;
 
-        var now = DateTime.Now;
+        await LoadDeclarationsAsync();
+    }
+
+    private async Task LoadDeclarationsAsync()
+    {
+        if (_user is null) return;
+
+        _loading = true;
         IEnumerable<Declaration> declarations;
 
         if (_user.Role == UserRole.Kontrahent)
         {
-            declarations = await DeclarationService.GetForContractorMonthAsync(_user.Id, now.Year, now.Month);
+            declarations = await DeclarationService.GetForContractorMonthAsync(_user.Id, _selectedYear, _selectedMonth);
         }
         else
         {
@@ -370,6 +400,25 @@
 
         _declarations = declarations.ToList();
         ComputeStats();
+        _loading = false;
+    }
+
+    private async Task OnMonthChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var month))
+        {
+            _selectedMonth = month;
+            await LoadDeclarationsAsync();
+        }
+    }
+
+    private async Task OnYearChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var year))
+        {
+            _selectedYear = year;
+            await LoadDeclarationsAsync();
+        }
     }
 
     private void ComputeStats()
@@ -462,8 +511,7 @@
         if (_user is null) return;
 
         _generating = true;
-        var now = DateTime.Now;
-        var declarations = await DeclarationService.CreateMissingDeclarationsAsync(_user.Id, now.Year, now.Month);
+        var declarations = await DeclarationService.CreateMissingDeclarationsAsync(_user.Id, _selectedYear, _selectedMonth);
         _declarations = declarations.ToList();
         ComputeStats();
         _generating = false;
@@ -475,8 +523,7 @@
 
     private void GoToDeclarations(string filter)
     {
-        var now = DateTime.Now;
-        Navigation.NavigateTo($"/rozliczenia/declarations?year={now.Year}&month={now.Month}&filter={filter}");
+        Navigation.NavigateTo($"/rozliczenia/declarations?year={_selectedYear}&month={_selectedMonth}&filter={filter}");
     }
 
     private string GetDonutStyle()
