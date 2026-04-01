@@ -11,11 +11,13 @@ public class CosmosDeclarationService : IDeclarationService
 {
     private readonly Container _container;
     private readonly IUserService _userService;
+    private readonly IDeclarationTemplateService _templateService;
 
-    public CosmosDeclarationService(CosmosClient cosmosClient, CosmosDbSettings settings, IUserService userService)
+    public CosmosDeclarationService(CosmosClient cosmosClient, CosmosDbSettings settings, IUserService userService, IDeclarationTemplateService templateService)
     {
         _container = cosmosClient.GetContainer(settings.DatabaseName, settings.DeclarationsContainerName);
         _userService = userService;
+        _templateService = templateService;
     }
 
     public async Task<IEnumerable<Declaration>> GetAllAsync()
@@ -115,18 +117,28 @@ public class CosmosDeclarationService : IDeclarationService
             .ToArray();
 
         var existing = (await GetForContractorMonthAsync(userId, year, month)).ToList();
+        var templates = (await _templateService.GetAllAsync()).Where(t => t.IsActive).ToList();
 
         foreach (var feeType in feeTypes)
         {
             if (existing.Any(d => d.FeeType == feeType))
                 continue;
 
+            var contractorType = user.ContractorTypes.First(ct =>
+                ContractorFeeMapping.GetFeeTypesForContractor(ct).Contains(feeType));
+
+            var template = templates.FirstOrDefault(t =>
+                t.FeeType == feeType &&
+                t.ContractorTypes.Contains(contractorType));
+
+            if (template is null)
+                continue;
+
             var feeCategory = DeclarationNumberGenerator.GetFeeCategory(feeType);
             var declaration = new Declaration
             {
                 UserId = userId,
-                ContractorType = user.ContractorTypes.First(ct =>
-                    ContractorFeeMapping.GetFeeTypesForContractor(ct).Contains(feeType)),
+                ContractorType = contractorType,
                 FeeType = feeType,
                 FeeCategory = feeCategory,
                 BillingYear = year,
