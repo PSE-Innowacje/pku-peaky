@@ -650,6 +650,35 @@ $templates = @(
         fields          = @(
             @{ number = "1"; code = "OKOE"; name = "Ilosc energii - podstawa naliczania oplaty kogeneracyjnej"; dataType = "Number (9,3)"; isRequired = $false; unit = "MWh" }
         )
+    },
+    @{
+        id              = "tpl-om-osd"
+        name            = "Oplata mocowa - OSDp / OSDn"
+        description     = "Wzorzec oswiadczenia dla oplaty mocowej (OM) dla OSDp i OSDn"
+        feeType         = 3  # OM
+        contractorTypes = @(0, 1)  # OSDp, OSDn
+        allowComment    = $true
+        isActive        = $true
+        createdAt       = (Get-Date).ToUniversalTime().ToString("o")
+        fields          = @(
+            @{ number = "1";   code = "OMSUM"; name = "Wielkosc srodkow z tytulu oplaty mocowej (1.1 - 1.2)"; dataType = "Number (12,2)"; isRequired = $true; unit = "zl" }
+            @{ number = "1.1"; code = "OMN";   name = "Wielkosc naleznych srodkow z tytulu oplaty mocowej"; dataType = "Number (12,2)"; isRequired = $true; unit = "zl" }
+            @{ number = "1.2"; code = "OMPN";  name = "Wierzytelnosci niesciagalne z poprzednich okresow"; dataType = "Number (12,2)"; isRequired = $true; unit = "zl" }
+            @{ number = "2";   code = "OME";   name = "Ilosc energii - podstawa naliczania oplaty mocowej"; dataType = "Number (9,3)"; isRequired = $true; unit = "MWh" }
+        )
+    },
+    @{
+        id              = "tpl-om-ok-wyt-mag"
+        name            = "Oplata mocowa - OK / Wyt / Mag"
+        description     = "Wzorzec dla oplaty mocowej dla OK, wytworcow i magazynow"
+        feeType         = 3  # OM
+        contractorTypes = @(4, 2, 3)  # OdbiorcaKoncowy, Wytworca, Magazyn
+        allowComment    = $true
+        isActive        = $true
+        createdAt       = (Get-Date).ToUniversalTime().ToString("o")
+        fields          = @(
+            @{ number = "1"; code = "OME"; name = "Ilosc energii - podstawa naliczania oplaty mocowej"; dataType = "Number (9,3)"; isRequired = $true; unit = "MWh" }
+        )
     }
 )
 
