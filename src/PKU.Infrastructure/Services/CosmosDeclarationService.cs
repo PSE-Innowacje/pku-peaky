@@ -86,49 +86,57 @@ public class CosmosDeclarationService : IDeclarationService
         if (user is null || user.Role != UserRole.Kontrahent)
             return [];
 
-        var feeTypes = user.ContractorTypes
-            .SelectMany(ContractorFeeMapping.GetFeeTypesForContractor)
-            .Distinct()
-            .ToArray();
-
         var sql = "SELECT * FROM c WHERE c.userId = @userId AND c.billingYear = @year AND c.billingMonth = @month";
         var queryDef = new QueryDefinition(sql)
             .WithParameter("@userId", userId)
             .WithParameter("@year", year)
             .WithParameter("@month", month);
         var query = _container.GetItemQueryIterator<Declaration>(queryDef);
-        var existing = new List<Declaration>();
+        var results = new List<Declaration>();
         while (query.HasMoreResults)
         {
             var response = await query.ReadNextAsync();
-            existing.AddRange(response);
+            results.AddRange(response);
         }
 
-        var result = new List<Declaration>();
+        return results;
+    }
+
+    public async Task<IEnumerable<Declaration>> CreateMissingDeclarationsAsync(string userId, int year, int month)
+    {
+        var user = await _userService.GetByIdAsync(userId);
+        if (user is null || user.Role != UserRole.Kontrahent)
+            return [];
+
+        var feeTypes = user.ContractorTypes
+            .SelectMany(ContractorFeeMapping.GetFeeTypesForContractor)
+            .Distinct()
+            .ToArray();
+
+        var existing = (await GetForContractorMonthAsync(userId, year, month)).ToList();
 
         foreach (var feeType in feeTypes)
         {
-            var declaration = existing.FirstOrDefault(d => d.FeeType == feeType);
-            if (declaration is null)
+            if (existing.Any(d => d.FeeType == feeType))
+                continue;
+
+            var feeCategory = DeclarationNumberGenerator.GetFeeCategory(feeType);
+            var declaration = new Declaration
             {
-                var feeCategory = DeclarationNumberGenerator.GetFeeCategory(feeType);
-                declaration = new Declaration
-                {
-                    UserId = userId,
-                    ContractorType = user.ContractorTypes.First(ct =>
-                        ContractorFeeMapping.GetFeeTypesForContractor(ct).Contains(feeType)),
-                    FeeType = feeType,
-                    FeeCategory = feeCategory,
-                    BillingYear = year,
-                    BillingMonth = month,
-                    Status = DeclarationStatus.NotSubmitted,
-                    Deadline = new DateTime(year, month, 1).AddMonths(1).AddDays(9)
-                };
-                await _container.CreateItemAsync(declaration, new PartitionKey(declaration.Id));
-            }
-            result.Add(declaration);
+                UserId = userId,
+                ContractorType = user.ContractorTypes.First(ct =>
+                    ContractorFeeMapping.GetFeeTypesForContractor(ct).Contains(feeType)),
+                FeeType = feeType,
+                FeeCategory = feeCategory,
+                BillingYear = year,
+                BillingMonth = month,
+                Status = DeclarationStatus.NotSubmitted,
+                Deadline = new DateTime(year, month, 1).AddMonths(1).AddDays(9)
+            };
+            await _container.CreateItemAsync(declaration, new PartitionKey(declaration.Id));
+            existing.Add(declaration);
         }
 
-        return result;
+        return existing;
     }
 }

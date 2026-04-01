@@ -60,6 +60,18 @@
             <option value="submitted">Zlozone</option>
         </select>
     </div>
+    @if (_user is not null && _user.Role == UserRole.Kontrahent)
+    {
+        <div class="col-auto d-flex align-items-end">
+            <button class="btn btn-success" @onclick="GenerateDeclarationsAsync" disabled="@_generating">
+                @if (_generating)
+                {
+                    <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+                }
+                Generuj oswiadczenia
+            </button>
+        </div>
+    }
 </div>
 
 <p class="text-muted">
@@ -186,7 +198,11 @@ else if (_filteredDeclarations is not null && _filteredDeclarations.Any())
 else
 {
     <div class="alert alert-info mt-3">
-        Brak oswiadczen do wyswietlenia dla wybranego okresu.
+        <p class="mb-0">Brak oswiadczen do wyswietlenia dla wybranego okresu.</p>
+        @if (_user is not null && _user.Role == UserRole.Kontrahent)
+        {
+            <p class="mt-2 mb-0">Kliknij przycisk <strong>Generuj oswiadczenia</strong> powyzej, aby utworzyc oswiadczenia dla wybranego okresu.</p>
+        }
     </div>
 }
 
@@ -198,6 +214,7 @@ else
     private int _selectedMonth = DateTime.Now.Month;
     private string _filter = "all";
     private bool _loading = true;
+    private bool _generating;
 
     [SupplyParameterFromQuery(Name = "year")]
     public int? QueryYear { get; set; }
@@ -292,6 +309,28 @@ else
         DeclarationStatus.Submitted => "Zlozone",
         _ => status.ToString()
     };
+
+    private async Task GenerateDeclarationsAsync()
+    {
+        if (_user is null) return;
+
+        _generating = true;
+
+        if (_selectedMonth == 0)
+        {
+            for (int m = 1; m <= 12; m++)
+            {
+                await DeclarationService.CreateMissingDeclarationsAsync(_user.Id, _selectedYear, m);
+            }
+        }
+        else
+        {
+            await DeclarationService.CreateMissingDeclarationsAsync(_user.Id, _selectedYear, _selectedMonth);
+        }
+
+        _generating = false;
+        await LoadDeclarationsAsync();
+    }
 
     private void GoToDeclaration(string id)
     {

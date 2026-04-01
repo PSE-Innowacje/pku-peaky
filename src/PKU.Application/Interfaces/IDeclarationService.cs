@@ -13,8 +13,12 @@ public interface IDeclarationService
     Task UpdateAsync(Declaration declaration);
 
     /// <summary>
-    /// Returns declarations for a contractor for a given month/year.
-    /// If declarations don't exist yet, creates them with NotSubmitted status.
+    /// Returns existing declarations for a contractor for a given month/year.
     /// </summary>
     Task<IEnumerable<Declaration>> GetForContractorMonthAsync(string userId, int year, int month);
+
+    /// <summary>
+    /// Creates missing declarations for a contractor for a given month/year and returns all declarations for that period.
+    /// </summary>
+    Task<IEnumerable<Declaration>> CreateMissingDeclarationsAsync(string userId, int year, int month);
 }
