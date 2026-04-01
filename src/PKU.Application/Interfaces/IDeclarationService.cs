@@ -18,6 +18,11 @@ public interface IDeclarationService
     Task<IEnumerable<Declaration>> GetForContractorMonthAsync(string userId, int year, int month);
 
     /// <summary>
+    /// Returns existing declarations for a contractor for a given year (all months).
+    /// </summary>
+    Task<IEnumerable<Declaration>> GetForContractorYearAsync(string userId, int year);
+
+    /// <summary>
     /// Creates missing declarations for a contractor for a given month/year and returns all declarations for that period.
     /// </summary>
     Task<IEnumerable<Declaration>> CreateMissingDeclarationsAsync(string userId, int year, int month);

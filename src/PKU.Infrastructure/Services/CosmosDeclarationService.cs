@@ -105,6 +105,27 @@ public class CosmosDeclarationService : IDeclarationService
         return results;
     }
 
+    public async Task<IEnumerable<Declaration>> GetForContractorYearAsync(string userId, int year)
+    {
+        var user = await _userService.GetByIdAsync(userId);
+        if (user is null || user.Role != UserRole.Kontrahent)
+            return [];
+
+        var sql = "SELECT * FROM c WHERE c.userId = @userId AND c.billingYear = @year";
+        var queryDef = new QueryDefinition(sql)
+            .WithParameter("@userId", userId)
+            .WithParameter("@year", year);
+        var query = _container.GetItemQueryIterator<Declaration>(queryDef);
+        var results = new List<Declaration>();
+        while (query.HasMoreResults)
+        {
+            var response = await query.ReadNextAsync();
+            results.AddRange(response);
+        }
+
+        return results;
+    }
+
     public async Task<IEnumerable<Declaration>> CreateMissingDeclarationsAsync(string userId, int year, int month)
     {
         var user = await _userService.GetByIdAsync(userId);
