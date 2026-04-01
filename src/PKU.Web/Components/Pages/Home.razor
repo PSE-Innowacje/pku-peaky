@@ -8,15 +8,19 @@
 <p>Witamy w systemie PKU do skladania oswiadczen dla rozliczen oplat przesylowych i pozaprzesylowych.</p>
 
 <div class="row mt-4">
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">Administracja</h5>
-                <p class="card-text">Zarzadzanie uzytkownikami, wzorcami oswiadczen i terminarzami.</p>
-                <a href="admin/users" class="btn btn-primary">Przejdz</a>
+    <AuthorizeView Roles="Administrator">
+        <Authorized>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Administracja</h5>
+                        <p class="card-text">Zarzadzanie uzytkownikami, wzorcami oswiadczen i terminarzami.</p>
+                        <a href="admin/users" class="btn btn-primary">Przejdz</a>
+                    </div>
+                </div>
             </div>
-        </div>
-    </div>
+        </Authorized>
+    </AuthorizeView>
     <div class="col-md-6">
         <div class="card">
             <div class="card-body">
