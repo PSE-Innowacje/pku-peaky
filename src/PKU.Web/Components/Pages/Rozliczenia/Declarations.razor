@@ -5,10 +5,13 @@
 @using PKU.Domain.Entities
 @using PKU.Domain.Enums
 @using PKU.Domain.Services
+@using System.Text.Json
 @inject IDeclarationService DeclarationService
+@inject IDeclarationTemplateService TemplateService
 @inject IUserService UserService
 @inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager Navigation
+@inject IJSRuntime JS
 @using Microsoft.AspNetCore.Components.Forms
 @rendermode InteractiveServer
 
@@ -175,7 +178,12 @@ else if (_filteredDeclarations is not null && _filteredDeclarations.Any())
                         </td>
                         <td>@d.SubmittedAt?.ToString("yyyy-MM-dd HH:mm")</td>
                         <td>
-                            <button class="btn btn-sm btn-outline-primary" @onclick="() => GoToDeclaration(d.Id)">Podglad</button>
+                            <div class="btn-group">
+                                <button class="btn btn-sm btn-outline-primary" @onclick="() => GoToDeclaration(d.Id)">Podglad</button>
+                                <button class="btn btn-sm btn-outline-secondary" @onclick="() => ExportToJsonAsync(d)" disabled="@_exporting">
+                                    Eksportuj
+                                </button>
+                            </div>
                         </td>
                     </tr>
                 }
@@ -198,6 +206,7 @@ else
     private int _selectedMonth = DateTime.Now.Month;
     private string _filter = "all";
     private bool _loading = true;
+    private bool _exporting;
 
     [SupplyParameterFromQuery(Name = "year")]
     public int? QueryYear { get; set; }
@@ -296,6 +305,90 @@ else
     private void GoToDeclaration(string id)
     {
         Navigation.NavigateTo($"/rozliczenia/declarations/{id}");
+    }
+
+    private async Task ExportToJsonAsync(Declaration declaration)
+    {
+        if (_user is null) return;
+
+        _exporting = true;
+        try
+        {
+            var exportData = new Dictionary<string, object?>
+            {
+                ["numerOswiadczenia"] = declaration.DeclarationNumber,
+                ["typOplaty"] = declaration.FeeType.ToString(),
+                ["nazwaOplaty"] = ContractorFeeMapping.GetFeeTypeName(declaration.FeeType),
+                ["kategoria"] = declaration.FeeCategory.ToString(),
+                ["nazwaKategorii"] = ContractorFeeMapping.GetFeeCategoryName(declaration.FeeCategory),
+                ["typKontrahenta"] = declaration.ContractorType.ToString(),
+                ["rokRozliczeniowy"] = declaration.BillingYear,
+                ["miesiacRozliczeniowy"] = declaration.BillingMonth,
+                ["status"] = GetStatusName(declaration.Status),
+                ["dataZlozenia"] = declaration.SubmittedAt?.ToString("yyyy-MM-ddTHH:mm:ssZ"),
+                ["terminZlozenia"] = declaration.Deadline?.ToString("yyyy-MM-dd"),
+                ["komentarz"] = declaration.Comment
+            };
+
+            // Add contractor info
+            User? owner = _user.Role == UserRole.Administrator
+                ? await UserService.GetByIdAsync(declaration.UserId)
+                : _user;
+
+            if (owner is not null)
+            {
+                exportData["kontrahent"] = new Dictionary<string, string?>
+                {
+                    ["nazwa"] = owner.ContractorFullName,
+                    ["skrot"] = owner.ContractorShortName,
+                    ["kod"] = owner.ContractorCode,
+                    ["nip"] = owner.NIP,
+                    ["krs"] = owner.KRS
+                };
+            }
+
+            // Add field values with template metadata
+            var templates = await TemplateService.GetAllAsync();
+            var template = templates.FirstOrDefault(t =>
+                t.IsActive &&
+                t.FeeType == declaration.FeeType &&
+                t.ContractorTypes.Contains(declaration.ContractorType));
+
+            if (template is not null)
+            {
+                exportData["pola"] = template.Fields.Select(f => new Dictionary<string, object?>
+                {
+                    ["pozycja"] = f.Number,
+                    ["kod"] = f.Code,
+                    ["nazwa"] = f.Name,
+                    ["wartosc"] = declaration.FieldValues.TryGetValue(f.Code, out var v) ? v : "",
+                    ["jednostka"] = f.Unit
+                }).ToList();
+            }
+            else
+            {
+                exportData["pola"] = declaration.FieldValues;
+            }
+
+            var json = JsonSerializer.Serialize(exportData, new JsonSerializerOptions
+            {
+                WriteIndented = true,
+                Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+            });
+
+            var fileName = string.IsNullOrEmpty(declaration.DeclarationNumber)
+                ? $"oswiadczenie_{declaration.Id}.json"
+                : $"{declaration.DeclarationNumber.Replace("/", "_")}.json";
+
+            var bytes = System.Text.Encoding.UTF8.GetBytes(json);
+            var base64 = Convert.ToBase64String(bytes);
+
+            await JS.InvokeVoidAsync("downloadFile", fileName, "application/json", base64);
+        }
+        finally
+        {
+            _exporting = false;
+        }
     }
 
     private static string GetMonthName(int month) => month switch
